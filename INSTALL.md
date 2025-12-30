@@ -57,6 +57,56 @@ By default, the `@conductor` agent uses your session's default model. We **highl
 
 ---
 
+## 🏗️ Development & Manual Install
+
+If you want to install from source or contribute to the plugin development:
+
+### 1. Build from Source
+```bash
+# Clone and enter the repo
+git clone https://github.com/derekbar90/opencode-conductor.git
+cd opencode-conductor
+
+# Install dependencies and build
+npm install
+npm run build
+```
+
+### 2. Local Linking (Real-time Development)
+To see your changes reflected immediately without reinstalling:
+```bash
+# Inside the opencode-conductor repo
+npm link
+
+# Inside your global opencode config directory
+cd ~/.config/opencode
+npm link opencode-conductor-plugin
+```
+Then, update your `~/.config/opencode/opencode.json` to include `"opencode-conductor-plugin"`.
+
+### 3. Manual Scaffolding (Fallback)
+If the auto-bootstrapping script fails or you prefer manual control, you can copy the definitions yourself from the `dist` folder:
+
+```bash
+# Create target directories
+mkdir -p ~/.config/opencode/agent
+mkdir -p ~/.config/opencode/command
+
+# Copy Agent definition
+cp dist/prompts/agent/conductor.md ~/.config/opencode/agent/
+
+# Copy Slash Commands
+cp dist/prompts/commands/*.md ~/.config/opencode/command/
+```
+
+### 4. Verification
+Check the terminal output where you started OpenCode. You should see:
+`[Conductor] Plugin tools loaded.`
+
+If you see errors, ensure that your `node_modules` are up to date by running `npm install` again.
+
+---
+
 ## 🛠️ Commands Available
 
 Once installed and restarted, type `/` in the OpenCode TUI to access:
@@ -68,24 +118,7 @@ Once installed and restarted, type `/` in the OpenCode TUI to access:
 
 ---
 
-## 🏗️ Development & Manual Install
-
-If you want to install from source or contribute:
-
-### 1. Build and Package
-```bash
-npm install
-npm run build
-npm pack
-```
-
-### 2. Local Installation
-```bash
-cd ~/.config/opencode
-npm install /path/to/opencode-conductor-0.1.0.tgz
-```
-
-### 3. Contributing (Versioning)
+## 📈 Contributing (Versioning)
 This project uses **Conventional Commits**. To trigger an automated release, use the following prefixes in your commit messages:
 - `feat:` for new features (Minor version bump)
 - `fix:` for bug fixes (Patch version bump)
