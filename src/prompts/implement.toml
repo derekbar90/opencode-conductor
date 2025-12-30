@@ -69,12 +69,11 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 5.  **Execute Tasks and Update Track Plan:**
     a. **Announce:** State that you will now execute the tasks from the track's `plan.md` by following the procedures in `workflow.md`.
-    b. **OMO Delegation (Synergy Mode):** If `isOMOActive` is "true", you SHOULD consider yourself the Architect. Instead of implementing every code change yourself, you can call `@sisyphus` to handle the granular TDD loops for each task.
-       - *Action:* For each task, announce: "Delegating implementation of task [Name] to Sisyphus."
-       - *Action:* Call `@sisyphus` with the task description and reference the `spec.md` and `workflow.md`.
-       - *Action:* Once Sisyphus completes the task, you verify it against the plan and move to the next.
-    c. **Manual Implementation (Standard Mode):** If `isOMOActive` is "false" or if you choose to implement directly, you MUST now loop through each task in the track's `plan.md` one by one.
-    d. **For Each Task, You MUST:**
+        b. **OMO Delegation (Synergy Mode):** If `isOMOActive` is "true", you SHOULD consider yourself the Architect. Instead of implementing every code change yourself, you MUST delegate the granular TDD loops for each task to Sisyphus using the `task` tool.
+           - *Action:* For each task, announce: "Delegating implementation of task [Name] to Sisyphus."
+           - *Action:* Use the `task` tool with `subagent_type="Sisyphus"`. Provide the task description and reference the `spec.md` and `workflow.md` in the prompt.
+           - *Action:* Once Sisyphus completes the task, you verify it against the plan and move to the next.
+        c. **Manual Implementation (Standard Mode):** If `isOMOActive` is "false" or if you choose to implement directly, you MUST now loop through each task in the track's `plan.md` one by one.    d. **For Each Task, You MUST:**
         i. **Defer to Workflow:** The `workflow.md` file is the **single source of truth** for the entire task lifecycle. You MUST now read and execute the procedures defined in the "Task Workflow" section of the `workflow.md` file you have in your context. Follow its steps for implementation, testing, and committing precisely.
 
 5.  **Finalize Track:**

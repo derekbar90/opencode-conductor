@@ -27,7 +27,8 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 ### 2.1 Get Track Description and Determine Type
 
-1.  **Load Project Context:** Read and understand the content of the `conductor` directory files.
+1.  **Initialize Planning:** If `isOMOActive` is "true", use the `todowrite` tool to create an initial todo for the planning phase: `[WAITING] Planning Track: <Description>`.
+2.  **Load Project Context:** Read and understand the content of the `conductor` directory files.
 2.  **Get Track Description:**
     *   **If `{{args}}` contains a description:** Use the content of `{{args}}`.
     *   **If `{{args}}` is empty:** Ask the user:
