@@ -3,6 +3,26 @@
   "version": "0.1.0",
   "description": "Conductor plugin for OpenCode",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/derekbar90/opencode-conductor.git"
+  },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "conductor",
+    "agent",
+    "sisyphus"
+  ],
+  "author": "Derek Barrera",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/derekbar90/opencode-conductor/issues"
+  },
+  "homepage": "https://github.com/derekbar90/opencode-conductor#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
