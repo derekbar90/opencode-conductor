@@ -32,6 +32,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Verify NPM Auth
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Semantic Release
         run: npx semantic-release
         env:
