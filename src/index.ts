@@ -7,12 +7,23 @@ import { statusCommand } from "./commands/status.js";
 import { revertCommand } from "./commands/revert.js";
 import { join } from "path";
 import { homedir } from "os";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 
 const ConductorPlugin: Plugin = async (ctx) => {
   // Detect oh-my-opencode for synergy features
-  const omoPath = join(homedir(), ".config", "opencode", "node_modules", "oh-my-opencode");
-  const isOMOActive = existsSync(omoPath);
+  const configPath = join(homedir(), ".config", "opencode", "opencode.json");
+  let isOMOActive = false;
+
+  try {
+    if (existsSync(configPath)) {
+      const config = JSON.parse(readFileSync(configPath, "utf-8"));
+      isOMOActive = config.plugin?.some((p: string) => p.includes("oh-my-opencode"));
+    }
+  } catch (e) {
+    // Fallback to filesystem check if config read fails
+    const omoPath = join(homedir(), ".config", "opencode", "node_modules", "oh-my-opencode");
+    isOMOActive = existsSync(omoPath);
+  }
 
   console.log(`[Conductor] Plugin tools loaded. (OMO Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`);
 
