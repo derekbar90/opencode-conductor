@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/derekbar90/opencode-conductor/compare/v1.1.0...v1.1.1) (2025-12-30)
+
+
+### Bug Fixes
+
+* prevent plugin initialization from hanging on async toasts and bootstrap ([5d71844](https://github.com/derekbar90/opencode-conductor/commit/5d718441adb7abcc26cec0855952886b37f94869))
+
 # [1.1.0](https://github.com/derekbar90/opencode-conductor/compare/v1.0.0...v1.1.0) (2025-12-30)
 
 
