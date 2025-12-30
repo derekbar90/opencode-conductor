@@ -11,7 +11,7 @@ Add the plugin to your global `opencode.json` file. OpenCode will automatically 
 ```json
 {
   "plugin": [
-    "opencode-conductor"
+    "@derekbar90/opencode-conductor"
   ]
 }
 ```
