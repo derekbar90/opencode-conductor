@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/derekbar90/opencode-conductor/compare/v1.2.0...v1.2.1) (2025-12-30)
+
+
+### Bug Fixes
+
+* correct agent mode to 'primary' for OpenCode validation ([0eaed13](https://github.com/derekbar90/opencode-conductor/commit/0eaed13e8888756baf992a7de509a6bb812b36ec))
+
 # [1.2.0](https://github.com/derekbar90/opencode-conductor/compare/v1.1.3...v1.2.0) (2025-12-30)
 
 
