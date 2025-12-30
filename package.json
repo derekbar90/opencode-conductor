@@ -1,0 +1,24 @@
+{
+  "name": "opencode-conductor",
+  "version": "0.1.0",
+  "description": "Conductor plugin for OpenCode",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && npm run copy-prompts",
+    "copy-prompts": "mkdir -p dist/prompts && cp src/prompts/*.toml dist/prompts/",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.0.209",
+    "smol-toml": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

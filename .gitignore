@@ -200,6 +200,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+node_modules/
+dist/
 .DS_Store
 
 # Genkit
@@ -209,3 +211,4 @@ __marimo__/
 tmp/
 
 /.gemini/tmp/
+*.tgz
