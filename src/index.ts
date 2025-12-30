@@ -12,20 +12,32 @@ import { existsSync, readFileSync } from "fs";
 const ConductorPlugin: Plugin = async (ctx) => {
   // Detect oh-my-opencode for synergy features
   const configPath = join(homedir(), ".config", "opencode", "opencode.json");
+  const omoFSPath = join(homedir(), ".config", "opencode", "node_modules", "oh-my-opencode");
   let isOMOActive = false;
 
   try {
     if (existsSync(configPath)) {
       const config = JSON.parse(readFileSync(configPath, "utf-8"));
-      isOMOActive = config.plugin?.some((p: string) => p.includes("oh-my-opencode"));
+      // Check both "plugin" and "plugins" keys for robustness
+      const plugins = config.plugin || config.plugins || [];
+      isOMOActive = plugins.some((p: any) => 
+        (typeof p === "string" && p.includes("oh-my-opencode")) || 
+        (p && typeof p === "object" && p.name?.includes("oh-my-opencode"))
+      );
     }
   } catch (e) {
-    // Fallback to filesystem check if config read fails
-    const omoPath = join(homedir(), ".config", "opencode", "node_modules", "oh-my-opencode");
-    isOMOActive = existsSync(omoPath);
+    // Silent fail on JSON parse
   }
 
-  console.log(`[Conductor] Plugin tools loaded. (OMO Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`);
+  // Double check filesystem if config check didn't find it
+  if (!isOMOActive) {
+    isOMOActive = existsSync(omoFSPath);
+  }
+
+  console.log(`[Conductor] Plugin tools loaded. (Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`);
+  if (!isOMOActive) {
+     console.log(`[Conductor] Debug: Checked ${configPath} and ${omoFSPath}`);
+  }
 
   const extendedCtx = { ...ctx, isOMOActive };
 
