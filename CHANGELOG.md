@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/derekbar90/opencode-conductor/compare/v1.3.0...v1.4.0) (2025-12-30)
+
+
+### Features
+
+* implement deep Sisyphus delegation via config hook and task tool ([709abd2](https://github.com/derekbar90/opencode-conductor/commit/709abd26dee129c87486396edc943eab3d5f2803))
+
 # [1.3.0](https://github.com/derekbar90/opencode-conductor/compare/v1.2.1...v1.3.0) (2025-12-30)
 
 
