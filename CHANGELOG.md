@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/derekbar90/opencode-conductor/compare/v1.1.2...v1.1.3) (2025-12-30)
+
+
+### Bug Fixes
+
+* sync src/index.ts with lean structure ([18a7105](https://github.com/derekbar90/opencode-conductor/commit/18a710540dc175ba173e470ece1fe0ca48b7cd48))
+
 ## [1.1.2](https://github.com/derekbar90/opencode-conductor/compare/v1.1.1...v1.1.2) (2025-12-30)
 
 
