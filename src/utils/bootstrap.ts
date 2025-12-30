@@ -43,7 +43,8 @@ export async function bootstrap(ctx: any) {
   }
 
   if (installedAnything) {
-    await ctx.client.tui.showToast({
+    // Do not await toasts during bootstrapping as the TUI might not be ready
+    ctx.client.tui.showToast({
       body: {
         title: "Conductor",
         message: "First-run setup: Conductor agent and commands installed globally. Please restart OpenCode to enable slash commands.",

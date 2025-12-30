@@ -15,7 +15,8 @@ const __dirname = dirname(__filename);
 
 const ConductorPlugin: Plugin = async (ctx) => {
   console.log("[Conductor] Plugin loading...");
-  await bootstrap(ctx);
+  // Run bootstrap in background to avoid hanging startup
+  bootstrap(ctx).catch(err => console.error("[Conductor] Bootstrap failed:", err));
 
   return {
     config: async (config) => {
@@ -29,20 +30,19 @@ const ConductorPlugin: Plugin = async (ctx) => {
         const promptPath = join(__dirname, "prompts/agent.md");
         agentPrompt = await readFile(promptPath, "utf-8");
       } catch (e) {
-        console.error("[Conductor] Failed to read agent prompt from:", join(__dirname, "prompts/agent.md"));
+        console.error("[Conductor] Failed to read agent prompt");
         agentPrompt = "Specialized agent for Conductor spec-driven development.";
       }
 
-      await ctx.client.tui.showToast({
+      // Do not await toasts in the config hook
+      ctx.client.tui.showToast({
         body: {
           title: "Conductor",
           message: isOMOActive ? "Conductor Agent & Commands registered" : "Conductor Commands registered",
           variant: "success",
           duration: 3000
         }
-      }).catch((e) => {
-        console.error("[Conductor] Toast failed:", e);
-      });
+      }).catch(() => {});
 
       // Register the Conductor Agent logic. 
       // User can override the model in their global opencode.json or oh-my-opencode.json
