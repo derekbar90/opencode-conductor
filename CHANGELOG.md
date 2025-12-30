@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/derekbar90/opencode-conductor/compare/v1.2.1...v1.3.0) (2025-12-30)
+
+
+### Features
+
+* improve oh-my-opencode detection via opencode.json ([e4abb72](https://github.com/derekbar90/opencode-conductor/commit/e4abb7220ae6ba42c73ef55b6d23a57d87a2a160))
+
 ## [1.2.1](https://github.com/derekbar90/opencode-conductor/compare/v1.2.0...v1.2.1) (2025-12-30)
 
 
