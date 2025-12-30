@@ -1,5 +1,5 @@
 {
-  "name": "opencode-conductor",
+  "name": "@derekbar90/opencode-conductor",
   "version": "0.1.0",
   "description": "Conductor plugin for OpenCode",
   "type": "module",
