@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/derekbar90/opencode-conductor/compare/v1.8.0...v1.8.1) (2025-12-31)
+
+
+### Bug Fixes
+
+* **synergy:** force release for sisyphus delegation improvements ([ecc3724](https://github.com/derekbar90/opencode-conductor/commit/ecc3724ce602e09f22c8b1d26c76f35ba0fae200))
+
 # [1.8.0](https://github.com/derekbar90/opencode-conductor/compare/v1.7.0...v1.8.0) (2025-12-31)
 
 
