@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/derekbar90/opencode-conductor/compare/v1.6.0...v1.7.0) (2025-12-31)
+
+
+### Features
+
+* finalized stable baseline for 1.7.0 ([2bb176f](https://github.com/derekbar90/opencode-conductor/commit/2bb176f98925318351b4af4649eac805f98a36ef))
+
 # [1.4.0](https://github.com/derekbar90/opencode-conductor/compare/v1.3.1...v1.4.0) (2025-12-31)
 
 
