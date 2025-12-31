@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/derekbar90/opencode-conductor/compare/v1.4.0...v1.5.0) (2025-12-31)
+
+
+### Features
+
+* implement Live Mirror Sync with bypassed SDK type restrictions ([b9ce8e5](https://github.com/derekbar90/opencode-conductor/commit/b9ce8e5e275cc2eea2d669736cab90cce34a4dce))
+
 # [1.4.0](https://github.com/derekbar90/opencode-conductor/compare/v1.3.0...v1.4.0) (2025-12-30)
 
 
