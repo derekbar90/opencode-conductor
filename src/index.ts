@@ -14,34 +14,56 @@ const ConductorPlugin: Plugin = async (ctx) => {
   const configPath = join(homedir(), ".config", "opencode", "opencode.json");
   const omoFSPath = join(homedir(), ".config", "opencode", "node_modules", "oh-my-opencode");
   let isOMOActive = false;
+  let mainSessionID: string | undefined;
 
   try {
     if (existsSync(configPath)) {
       const config = JSON.parse(readFileSync(configPath, "utf-8"));
-      // Check both "plugin" and "plugins" keys for robustness
       const plugins = config.plugin || config.plugins || [];
       isOMOActive = plugins.some((p: any) => 
         (typeof p === "string" && p.includes("oh-my-opencode")) || 
         (p && typeof p === "object" && p.name?.includes("oh-my-opencode"))
       );
     }
-  } catch (e) {
-    // Silent fail on JSON parse
-  }
+  } catch (e) {}
 
-  // Double check filesystem if config check didn't find it
-  if (!isOMOActive) {
-    isOMOActive = existsSync(omoFSPath);
-  }
+  if (!isOMOActive) isOMOActive = existsSync(omoFSPath);
 
   console.log(`[Conductor] Plugin tools loaded. (Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`);
-  if (!isOMOActive) {
-     console.log(`[Conductor] Debug: Checked ${configPath} and ${omoFSPath}`);
-  }
 
   const extendedCtx = { ...ctx, isOMOActive };
 
   return {
+    event: async (input) => {
+      const { event } = input;
+      const props = event.properties;
+
+      // 1. Track the main session ID
+      if (event.type === "session.created") {
+        const info = (props as any)?.info;
+        if (info && !info.parentID) {
+          mainSessionID = info.id;
+        }
+      }
+
+      // 2. Monitor for telemetry tags in subagent messages
+      if (event.type === "message.part.updated" && mainSessionID) {
+        const text = (props as any)?.part?.text || "";
+        const syncMatch = text.match(/<conductor_sync\s+id="([^"]+)"\s+status="([^"]+)"\s*\/>/);
+        
+        if (syncMatch) {
+          const [_, todoId, status] = syncMatch;
+          
+          // Execute a hidden command in the main session to update the todo UI
+          await ctx.client.session.command({
+            path: { id: mainSessionID },
+            body: { 
+              command: `/todowrite ${status} ${todoId}`
+            } as any
+          }).catch(() => {});
+        }
+      }
+    },
     config: async (config) => {
       // 1. Enable delegation to Sisyphus by making it a subagent-capable agent
       if (config.agent?.["Sisyphus"] && config.agent["Sisyphus"].mode === "primary") {

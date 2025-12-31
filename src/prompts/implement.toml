@@ -69,11 +69,16 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 5.  **Execute Tasks and Update Track Plan:**
     a. **Announce:** State that you will now execute the tasks from the track's `plan.md` by following the procedures in `workflow.md`.
-        b. **OMO Delegation (Synergy Mode):** If `isOMOActive` is "true", you SHOULD consider yourself the Architect. Instead of implementing every code change yourself, you MUST delegate the granular TDD loops for each task to Sisyphus using the `task` tool.
-           - *Action:* For each task, announce: "Delegating implementation of task [Name] to Sisyphus."
-           - *Action:* Use the `task` tool with `subagent_type="Sisyphus"`. Provide the task description and reference the `spec.md` and `workflow.md` in the prompt.
-           - *Action:* Once Sisyphus completes the task, you verify it against the plan and move to the next.
-        c. **Manual Implementation (Standard Mode):** If `isOMOActive` is "false" or if you choose to implement directly, you MUST now loop through each task in the track's `plan.md` one by one.    d. **For Each Task, You MUST:**
+            b. **OMO Delegation & Live Telemetry (Synergy Mode):** If `isOMOActive` is "true", you MUST act as the Architect. Follow this sequence:
+               - **Step 1: Map Plan to Native Todos:** Read the current phase's tasks from `plan.md`. Use the `todowrite` tool to create a todo for EACH task in the **main session**. Use simple IDs like `task-1`, `task-2`, etc.
+               - **Step 2: Delegate the Phase:** Use the `task` tool with `subagent_type="Sisyphus"`. 
+               - **Step 3: The Delegation Prompt:** Your prompt to Sisyphus MUST include:
+                 > "You are implementing Phase [Name]. Here are the tasks: [List].
+                 > IMPORTANT: I have mirrored these tasks to the main UI with IDs task-1, task-2, etc.
+                 > When you complete a task, you **MUST** output the tag: `<conductor_sync id="task-N" status="completed" />`.
+                 > This allows the user to see your progress in real-time."
+               - **Step 4: Completion:** Once Sisyphus returns, verify the whole phase and proceed to the checkpoint.
+            c. **Manual Implementation (Standard Mode):** If `isOMOActive` is "false" or if you choose to implement directly, you MUST now loop through each task in the track's `plan.md` one by one.    d. **For Each Task, You MUST:**
         i. **Defer to Workflow:** The `workflow.md` file is the **single source of truth** for the entire task lifecycle. You MUST now read and execute the procedures defined in the "Task Workflow" section of the `workflow.md` file you have in your context. Follow its steps for implementation, testing, and committing precisely.
 
 5.  **Finalize Track:**
