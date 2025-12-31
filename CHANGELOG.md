@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/derekbar90/opencode-conductor/compare/v1.8.1...v1.8.2) (2025-12-31)
+
+
+### Bug Fixes
+
+* **implement:** authorize commits and mandate delegation in synergy mode ([74f0c9c](https://github.com/derekbar90/opencode-conductor/commit/74f0c9c4849b57a312a772c459b6d519982ca83b))
+
 ## [1.8.1](https://github.com/derekbar90/opencode-conductor/compare/v1.8.0...v1.8.1) (2025-12-31)
 
 
