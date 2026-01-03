@@ -75,6 +75,24 @@ We highly recommend pinning the `@conductor` agent to a "flash" model for optima
 ```
 
 ### OhMyOpenCode Config
+
+> **⚠️ Important:** Due to current OpenCode limitations, you need to configure the conductor agent in **both** config files when using oh-my-opencode.
+
+**File:** `~/.config/opencode/opencode.json`
+```json
+{
+  "plugin": [
+    "oh-my-opencode@latest",
+    "opencode-conductor-plugin@latest"
+  ],
+  "agent": {
+    "conductor": {
+      "model": "google/gemini-3-flash"
+    }
+  }
+}
+```
+
 **File:** `~/.config/opencode/oh-my-opencode.json`
 ```json
 {
@@ -85,6 +103,8 @@ We highly recommend pinning the `@conductor` agent to a "flash" model for optima
   }
 }
 ```
+
+*Note: The key difference is `"agent"` (singular) in `opencode.json` vs `"agents"` (plural) in `oh-my-opencode.json`. See [Issue #3](https://github.com/derekbar90/opencode-conductor/issues/3) for details.*
 
 ---
 
