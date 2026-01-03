@@ -76,7 +76,7 @@ We highly recommend pinning the `@conductor` agent to a "flash" model for optima
 
 ### OhMyOpenCode Config
 
-> **⚠️ Important:** Due to current OpenCode limitations, you need to configure the conductor agent in **both** config files when using oh-my-opencode.
+> **⚠️ Important:** Due to current OpenCode limitations, you need to configure the conductor agent in **both** config files when using oh-my-opencode. Additionally, the conductor agent must have the `task` tool enabled to delegate work to other agents like Sisyphus.
 
 **File:** `~/.config/opencode/opencode.json`
 ```json
@@ -87,7 +87,10 @@ We highly recommend pinning the `@conductor` agent to a "flash" model for optima
   ],
   "agent": {
     "conductor": {
-      "model": "google/gemini-3-flash"
+      "model": "google/gemini-3-flash",
+      "tools": {
+        "task": true
+      }
     }
   }
 }
@@ -98,13 +101,16 @@ We highly recommend pinning the `@conductor` agent to a "flash" model for optima
 {
   "agents": {
     "conductor": {
-      "model": "google/gemini-3-flash"
+      "model": "google/gemini-3-flash",
+      "tools": {
+        "task": true
+      }
     }
   }
 }
 ```
 
-*Note: The key difference is `"agent"` (singular) in `opencode.json` vs `"agents"` (plural) in `oh-my-opencode.json`. See [Issue #3](https://github.com/derekbar90/opencode-conductor/issues/3) for details.*
+*Note: The key difference is `"agent"` (singular) in `opencode.json` vs `"agents"` (plural) in `oh-my-opencode.json`. The `task` tool is required for conductor to delegate implementation work to Sisyphus and other oh-my-opencode agents. See [Issue #3](https://github.com/derekbar90/opencode-conductor/issues/3) for details.*
 
 ---
 
