@@ -1,5 +1,6 @@
 import { tool, type ToolDefinition } from "@opencode-ai/plugin/tool";
 import { existsSync } from "fs";
+import { readFile } from "fs/promises";
 import { join } from "path";
 import { loadPrompt } from "../utils/promptLoader.js";
 

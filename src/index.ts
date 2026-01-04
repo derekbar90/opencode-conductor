@@ -14,22 +14,42 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const ConductorPlugin: Plugin = async (ctx) => {
-  // Detect oh-my-opencode for synergy features
-  const configPath = join(homedir(), ".config", "opencode", "opencode.json");
-  let isOMOActive = false;
+function detectOMO(): boolean {
+  const home = homedir();
+  
+  // Method 1: Check if oh-my-opencode is installed in OpenCode's plugin cache
+  // This is where OpenCode actually installs plugins at runtime
+  const cachePluginPath = join(home, ".cache", "opencode", "node_modules", "oh-my-opencode");
+  if (existsSync(cachePluginPath)) {
+    return true;
+  }
 
+  // Method 2: Check opencode.json config for plugin declaration
+  const configPath = join(home, ".config", "opencode", "opencode.json");
   try {
     if (existsSync(configPath)) {
       const config = JSON.parse(readFileSync(configPath, "utf-8"));
-      isOMOActive = config.plugin?.some((p: string) => p.includes("oh-my-opencode"));
+      if (Array.isArray(config.plugin)) {
+        if (config.plugin.some((p: string) => p.includes("oh-my-opencode"))) {
+          return true;
+        }
+      }
     }
-  } catch (e) {
-    // Fallback to filesystem check if config read fails
-    const omoPath = join(homedir(), ".config", "opencode", "node_modules", "oh-my-opencode");
-    isOMOActive = existsSync(omoPath);
+  } catch {
+    // Config read failed, continue to other methods
   }
 
+  // Method 3: Check if oh-my-opencode config file exists (user has configured it)
+  const omoConfigPath = join(home, ".config", "opencode", "oh-my-opencode.json");
+  if (existsSync(omoConfigPath)) {
+    return true;
+  }
+
+  return false;
+}
+
+const ConductorPlugin: Plugin = async (ctx) => {
+  const isOMOActive = detectOMO();
   console.log(`[Conductor] Plugin tools loaded. (OMO Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`);
 
   const extendedCtx = { ...ctx, isOMOActive };
@@ -43,16 +63,17 @@ const ConductorPlugin: Plugin = async (ctx) => {
       conductor_revert: revertCommand(extendedCtx),
     },
     "tool.execute.before": async (input: any, output: any) => {
-      // INTERCEPT: Sisyphus Delegation Hook
+      // INTERCEPT: Task Delegation Hook
       // Purpose: Automatically inject the full Conductor context (Plan, Spec, Workflow, Protocol)
-      // whenever the Conductor delegates a task to Sisyphus. This ensures Sisyphus has "Engineering Authority"
-      // without needing the LLM to manually copy-paste huge context blocks.
+      // whenever the Conductor delegates a task via the `task` tool. This ensures the subagent
+      // has "Engineering Authority" without needing the LLM to manually copy-paste huge context blocks.
       
-      if (input.tool === "delegate_to_agent") {
-        const agentName = (output.args.agent_name || output.args.agent || "").toLowerCase();
+      if (input.tool === "task") {
+        const subagentType = (output.args.subagent_type || "").toLowerCase();
         
-        if (agentName.includes("sisyphus")) {
-          console.log("[Conductor] Intercepting Sisyphus delegation. Injecting Context Packet...");
+        // Intercept delegation to implementation subagents
+        if (subagentType.includes("implement") || subagentType === "general" || subagentType.includes("sisyphus")) {
+          console.log(`[Conductor] Intercepting task delegation to ${subagentType}. Injecting Context Packet...`);
           
           const conductorDir = join(ctx.directory, "conductor");
           const promptsDir = join(__dirname, "prompts");
@@ -65,16 +86,6 @@ const ConductorPlugin: Plugin = async (ctx) => {
              return null;
           };
 
-          // 1. Read Project Context Files
-          // We need to find the active track to get the correct spec/plan.
-          // Since we don't know the track ID easily here, we look for the 'plan.md' that might be in the args
-          // OR we just rely on the Conductor having already done the setup. 
-          // WAIT: We can't easily guess the track ID here. 
-          // BETTER APPROACH: We rely on the generic 'conductor/workflow.md' and 'prompts/implement.toml'.
-          // For 'spec.md' and 'plan.md', the Conductor usually puts the path in the message. 
-          // However, to be robust, we will read the GLOBAL workflow and the IMPLEMENT prompt.
-          // We will explicitly inject the IMPLEMENT PROMPT as requested.
-          
           const implementToml = await safeRead(join(promptsDir, "implement.toml"));
           const workflowMd = await safeRead(join(conductorDir, "workflow.md"));
           
@@ -100,8 +111,10 @@ const ConductorPlugin: Plugin = async (ctx) => {
           injection += "- **ESCALATE:** If you modify the Plan or Spec, report 'PLAN_UPDATED' immediately.\n";
           injection += "--- [END INJECTION] ---\n";
 
-          // Append to the objective
-          output.args.objective += injection;
+          // Append to the prompt
+          if (output.args.prompt) {
+            output.args.prompt += injection;
+          }
         }
       }
     }
