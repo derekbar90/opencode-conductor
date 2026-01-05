@@ -1,21 +1,16 @@
 import { type Plugin } from "@opencode-ai/plugin";
-import { tool } from "@opencode-ai/plugin/tool";
-import { setupCommand } from "./commands/setup.js";
-import { newTrackCommand } from "./commands/newTrack.js";
-import { implementCommand } from "./commands/implement.js";
-import { statusCommand } from "./commands/status.js";
-import { revertCommand } from "./commands/revert.js";
 import { join, dirname } from "path";
 import { homedir } from "os";
 import { existsSync, readFileSync } from "fs";
 import { readFile } from "fs/promises";
 import { fileURLToPath } from "url";
+import { parse } from "smol-toml";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const ConductorPlugin: Plugin = async (ctx) => {
-  // Detect oh-my-opencode for synergy features
+  // 1. Detect oh-my-opencode for synergy features
   const configPath = join(homedir(), ".config", "opencode", "opencode.json");
   let isOMOActive = false;
 
@@ -25,82 +20,137 @@ const ConductorPlugin: Plugin = async (ctx) => {
       isOMOActive = config.plugin?.some((p: string) => p.includes("oh-my-opencode"));
     }
   } catch (e) {
-    // Fallback to filesystem check if config read fails
     const omoPath = join(homedir(), ".config", "opencode", "node_modules", "oh-my-opencode");
     isOMOActive = existsSync(omoPath);
   }
 
-  console.log(`[Conductor] Plugin tools loaded. (OMO Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`);
+  console.log(`[Conductor] Plugin loaded. (OMO Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`);
 
-  const extendedCtx = { ...ctx, isOMOActive };
+  // 2. Helper to load and process prompt templates
+  const loadPrompt = async (filename: string, replacements: Record<string, string> = {}) => {
+    const promptPath = join(__dirname, "prompts", filename);
+    try {
+      const content = await readFile(promptPath, "utf-8");
+      const parsed = parse(content) as { prompt: string; description: string };
+      
+      let promptText = parsed.prompt;
+      
+      // Default Replacements
+      const defaults = {
+        isOMOActive: isOMOActive ? "true" : "false",
+        templatesDir: join(dirname(__dirname), "templates")
+      };
+
+      const finalReplacements = { ...defaults, ...replacements };
+
+      for (const [key, value] of Object.entries(finalReplacements)) {
+        promptText = promptText.replaceAll(`{{${key}}}`, value || "");
+      }
+
+      return {
+        prompt: promptText,
+        description: parsed.description
+      };
+    } catch (error) {
+      console.error(`[Conductor] Failed to load prompt ${filename}:`, error);
+      return { prompt: `SYSTEM ERROR: Failed to load prompt ${filename}`, description: "Error loading command" };
+    }
+  };
+
+  // 3. Load Strategies for Implement Command
+  let strategySection = "";
+  try {
+    const strategyFile = isOMOActive ? "delegate.md" : "manual.md";
+    strategySection = await readFile(join(__dirname, "prompts", "strategies", strategyFile), "utf-8");
+  } catch (e) {
+    strategySection = "SYSTEM ERROR: Could not load execution strategy.";
+  }
+
+  // 4. Load all Command Prompts
+  // conductor:setup
+  const setup = await loadPrompt("setup.toml");
+
+  // conductor:newTrack
+  // Note: Arguments ($ARGUMENTS) are handled natively by OpenCode commands via variable injection in the template string?
+  // Actually, for OpenCode commands, we put the placeholder directly in the string passed to 'template'.
+  // Our TOML files use {{args}}, so we need to map that to "$ARGUMENTS" or "$1".
+  const newTrack = await loadPrompt("newTrack.toml", { args: "$ARGUMENTS" });
+
+  // conductor:implement
+  const implement = await loadPrompt("implement.toml", { 
+    track_name: "$ARGUMENTS", // Map command arg to the TOML variable
+    strategy_section: strategySection 
+  });
+
+  // conductor:status
+  const status = await loadPrompt("status.toml");
+
+  // conductor:revert
+  const revert = await loadPrompt("revert.toml", { target: "$ARGUMENTS" });
 
   return {
-    tool: {
-      conductor_setup: setupCommand(extendedCtx),
-      conductor_new_track: newTrackCommand(extendedCtx),
-      conductor_implement: implementCommand(extendedCtx),
-      conductor_status: statusCommand(extendedCtx),
-      conductor_revert: revertCommand(extendedCtx),
+    command: {
+      "conductor:setup": {
+        template: setup.prompt,
+        description: setup.description,
+        agent: "conductor",
+      },
+      "conductor:newTrack": {
+        template: newTrack.prompt,
+        description: newTrack.description,
+        agent: "conductor",
+      },
+      "conductor:implement": {
+        template: implement.prompt,
+        description: implement.description,
+        agent: "sisyphus",
+      },
+      "conductor:status": {
+        template: status.prompt,
+        description: status.description,
+        agent: "conductor",
+      },
+      "conductor:revert": {
+        template: revert.prompt,
+        description: revert.description,
+        agent: "conductor",
+      }
     },
+    // Keep the Hook for Sisyphus Synergy
     "tool.execute.before": async (input: any, output: any) => {
-      // INTERCEPT: Sisyphus Delegation Hook
-      // Purpose: Automatically inject the full Conductor context (Plan, Spec, Workflow, Protocol)
-      // whenever the Conductor delegates a task to Sisyphus. This ensures Sisyphus has "Engineering Authority"
-      // without needing the LLM to manually copy-paste huge context blocks.
-      
       if (input.tool === "delegate_to_agent") {
         const agentName = (output.args.agent_name || output.args.agent || "").toLowerCase();
         
         if (agentName.includes("sisyphus")) {
-          console.log("[Conductor] Intercepting Sisyphus delegation. Injecting Context Packet...");
-          
           const conductorDir = join(ctx.directory, "conductor");
-          const promptsDir = join(__dirname, "prompts");
-
-          // Helper to safely read file content
+          
           const safeRead = async (path: string) => {
              try {
                if (existsSync(path)) return await readFile(path, "utf-8");
              } catch (e) { /* ignore */ }
              return null;
           };
-
-          // 1. Read Project Context Files
-          // We need to find the active track to get the correct spec/plan.
-          // Since we don't know the track ID easily here, we look for the 'plan.md' that might be in the args
-          // OR we just rely on the Conductor having already done the setup. 
-          // WAIT: We can't easily guess the track ID here. 
-          // BETTER APPROACH: We rely on the generic 'conductor/workflow.md' and 'prompts/implement.toml'.
-          // For 'spec.md' and 'plan.md', the Conductor usually puts the path in the message. 
-          // However, to be robust, we will read the GLOBAL workflow and the IMPLEMENT prompt.
-          // We will explicitly inject the IMPLEMENT PROMPT as requested.
           
-          const implementToml = await safeRead(join(promptsDir, "implement.toml"));
+          // We load the raw TOML just to get the protocol text if needed, or just hardcode a reference.
+          // Since we already loaded 'implement' above, we could potentially reuse it, but simplicity is better here.
+          // Let's just grab the workflow.md
           const workflowMd = await safeRead(join(conductorDir, "workflow.md"));
           
-          // Construct the injection block
           let injection = "\n\n--- [SYSTEM INJECTION: CONDUCTOR CONTEXT PACKET] ---\n";
           injection += "You are receiving this task from the Conductor Architect.\n";
-          
-          if (implementToml) {
-            injection += "\n### 1. ARCHITECTURAL PROTOCOL (Reference Only)\n";
-            injection += "Use this protocol to understand the project's rigorous standards. DO NOT restart the project management lifecycle (e.g. track selection).\n";
-            injection += "```toml\n" + implementToml + "\n```\n";
-          }
 
           if (workflowMd) {
-             injection += "\n### 2. DEVELOPMENT WORKFLOW\n";
+             injection += "\n### DEVELOPMENT WORKFLOW\n";
              injection += "Follow these TDD and Commit rules precisely.\n";
              injection += "```markdown\n" + workflowMd + "\n```\n";
           }
 
-          injection += "\n### 3. DELEGATED AUTHORITY\n";
+          injection += "\n### DELEGATED AUTHORITY\n";
           injection += "- **EXECUTE:** Implement the requested task using the Workflow.\n";
           injection += "- **REFINE:** You have authority to update `plan.md` if it is flawed.\n";
           injection += "- **ESCALATE:** If you modify the Plan or Spec, report 'PLAN_UPDATED' immediately.\n";
           injection += "--- [END INJECTION] ---\n";
 
-          // Append to the objective
           output.args.objective += injection;
         }
       }
