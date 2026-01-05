@@ -1,162 +1,152 @@
 import { type Plugin } from "@opencode-ai/plugin";
+import { tool } from "@opencode-ai/plugin/tool";
 import { join, dirname } from "path";
 import { homedir } from "os";
 import { existsSync, readFileSync } from "fs";
 import { readFile } from "fs/promises";
 import { fileURLToPath } from "url";
-import { parse } from "smol-toml";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const ConductorPlugin: Plugin = async (ctx) => {
-  // 1. Detect oh-my-opencode for synergy features
-  const configPath = join(homedir(), ".config", "opencode", "opencode.json");
-  let isOMOActive = false;
-
   try {
-    if (existsSync(configPath)) {
-      const config = JSON.parse(readFileSync(configPath, "utf-8"));
-      isOMOActive = config.plugin?.some((p: string) => p.includes("oh-my-opencode"));
-    }
-  } catch (e) {
-    const omoPath = join(homedir(), ".config", "opencode", "node_modules", "oh-my-opencode");
-    isOMOActive = existsSync(omoPath);
-  }
+    console.log("[Conductor] Initializing plugin...");
 
-  console.log(`[Conductor] Plugin loaded. (OMO Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`);
+    // 1. Detect oh-my-opencode for synergy features
+    const configPath = join(homedir(), ".config", "opencode", "opencode.json");
+    let isOMOActive = false;
 
-  // 2. Helper to load and process prompt templates
-  const loadPrompt = async (filename: string, replacements: Record<string, string> = {}) => {
-    const promptPath = join(__dirname, "prompts", filename);
     try {
-      const content = await readFile(promptPath, "utf-8");
-      const parsed = parse(content) as { prompt: string; description: string };
-      
-      let promptText = parsed.prompt;
-      
-      // Default Replacements
-      const defaults = {
-        isOMOActive: isOMOActive ? "true" : "false",
-        templatesDir: join(dirname(__dirname), "templates")
-      };
-
-      const finalReplacements = { ...defaults, ...replacements };
-
-      for (const [key, value] of Object.entries(finalReplacements)) {
-        promptText = promptText.replaceAll(`{{${key}}}`, value || "");
+      if (existsSync(configPath)) {
+        const config = JSON.parse(readFileSync(configPath, "utf-8"));
+        isOMOActive = config.plugin?.some((p: string) => p.includes("oh-my-opencode"));
       }
-
-      return {
-        prompt: promptText,
-        description: parsed.description
-      };
-    } catch (error) {
-      console.error(`[Conductor] Failed to load prompt ${filename}:`, error);
-      return { prompt: `SYSTEM ERROR: Failed to load prompt ${filename}`, description: "Error loading command" };
+    } catch (e) {
+      const omoPath = join(homedir(), ".config", "opencode", "node_modules", "oh-my-opencode");
+      isOMOActive = existsSync(omoPath);
     }
-  };
 
-  // 3. Load Strategies for Implement Command
-  let strategySection = "";
-  try {
-    const strategyFile = isOMOActive ? "delegate.md" : "manual.md";
-    strategySection = await readFile(join(__dirname, "prompts", "strategies", strategyFile), "utf-8");
-  } catch (e) {
-    strategySection = "SYSTEM ERROR: Could not load execution strategy.";
-  }
+    console.log(`[Conductor] Plugin environment detected. (OMO Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`);
 
-  // 4. Load all Command Prompts
-  // conductor:setup
-  const setup = await loadPrompt("setup.toml");
+    // 2. Helper to load and process prompt templates (Manual TOML Parsing)
+    const loadPrompt = async (filename: string, replacements: Record<string, string> = {}) => {
+      const promptPath = join(__dirname, "prompts", filename);
+      try {
+        const content = await readFile(promptPath, "utf-8");
+        const descMatch = content.match(/description\s*=\s*"([^"]+)"/);
+        const description = descMatch ? descMatch[1] : "Conductor Command";
+        const promptMatch = content.match(/prompt\s*=\s*"""([\s\S]*?)"""/);
+        let promptText = promptMatch ? promptMatch[1] : "";
 
-  // conductor:newTrack
-  // Note: Arguments ($ARGUMENTS) are handled natively by OpenCode commands via variable injection in the template string?
-  // Actually, for OpenCode commands, we put the placeholder directly in the string passed to 'template'.
-  // Our TOML files use {{args}}, so we need to map that to "$ARGUMENTS" or "$1".
-  const newTrack = await loadPrompt("newTrack.toml", { args: "$ARGUMENTS" });
-
-  // conductor:implement
-  const implement = await loadPrompt("implement.toml", { 
-    track_name: "$ARGUMENTS", // Map command arg to the TOML variable
-    strategy_section: strategySection 
-  });
-
-  // conductor:status
-  const status = await loadPrompt("status.toml");
-
-  // conductor:revert
-  const revert = await loadPrompt("revert.toml", { target: "$ARGUMENTS" });
-
-  return {
-    command: {
-      "conductor:setup": {
-        template: setup.prompt,
-        description: setup.description,
-        agent: "conductor",
-      },
-      "conductor:newTrack": {
-        template: newTrack.prompt,
-        description: newTrack.description,
-        agent: "conductor",
-      },
-      "conductor:implement": {
-        template: implement.prompt,
-        description: implement.description,
-        agent: "sisyphus",
-      },
-      "conductor:status": {
-        template: status.prompt,
-        description: status.description,
-        agent: "conductor",
-      },
-      "conductor:revert": {
-        template: revert.prompt,
-        description: revert.description,
-        agent: "conductor",
-      }
-    },
-    // Keep the Hook for Sisyphus Synergy
-    "tool.execute.before": async (input: any, output: any) => {
-      if (input.tool === "delegate_to_agent") {
-        const agentName = (output.args.agent_name || output.args.agent || "").toLowerCase();
+        if (!promptText) throw new Error(`Could not parse prompt text from ${filename}`);
         
-        if (agentName.includes("sisyphus")) {
-          const conductorDir = join(ctx.directory, "conductor");
-          
-          const safeRead = async (path: string) => {
-             try {
-               if (existsSync(path)) return await readFile(path, "utf-8");
-             } catch (e) { /* ignore */ }
-             return null;
-          };
-          
-          // We load the raw TOML just to get the protocol text if needed, or just hardcode a reference.
-          // Since we already loaded 'implement' above, we could potentially reuse it, but simplicity is better here.
-          // Let's just grab the workflow.md
-          const workflowMd = await safeRead(join(conductorDir, "workflow.md"));
-          
-          let injection = "\n\n--- [SYSTEM INJECTION: CONDUCTOR CONTEXT PACKET] ---\n";
-          injection += "You are receiving this task from the Conductor Architect.\n";
+        const defaults = {
+          isOMOActive: isOMOActive ? "true" : "false",
+          templatesDir: join(dirname(__dirname), "templates")
+        };
 
-          if (workflowMd) {
-             injection += "\n### DEVELOPMENT WORKFLOW\n";
-             injection += "Follow these TDD and Commit rules precisely.\n";
-             injection += "```markdown\n" + workflowMd + "\n```\n";
+        const finalReplacements = { ...defaults, ...replacements };
+        for (const [key, value] of Object.entries(finalReplacements)) {
+          promptText = promptText.replaceAll(`{{${key}}}`, value || "");
+        }
+
+        return { prompt: promptText, description: description };
+      } catch (error) {
+        console.error(`[Conductor] Error loading prompt ${filename}:`, error);
+        return { prompt: `SYSTEM ERROR: Failed to load prompt ${filename}`, description: "Error loading command" };
+      }
+    };
+
+    // 3. Load Strategies
+    let strategySection = "";
+    try {
+      const strategyFile = isOMOActive ? "delegate.md" : "manual.md";
+      const strategyPath = join(__dirname, "prompts", "strategies", strategyFile);
+      strategySection = await readFile(strategyPath, "utf-8");
+    } catch (e) {
+      strategySection = "SYSTEM ERROR: Could not load execution strategy.";
+    }
+
+    // 4. Load all Command Prompts (Parallel)
+    const [setup, newTrack, implement, status, revert] = await Promise.all([
+      loadPrompt("setup.toml"),
+      loadPrompt("newTrack.toml", { args: "$ARGUMENTS" }),
+      loadPrompt("implement.toml", { track_name: "$ARGUMENTS", strategy_section: strategySection }),
+      loadPrompt("status.toml"),
+      loadPrompt("revert.toml", { target: "$ARGUMENTS" })
+    ]);
+
+    // 5. Extract Agent Prompt
+    const agentMd = await readFile(join(__dirname, "prompts", "agent", "conductor.md"), "utf-8");
+    const agentPrompt = agentMd.split("---").pop()?.trim() || "";
+
+    console.log("[Conductor] All components ready. Injecting config...");
+
+    return {
+      tool: {
+        "conductor_health": tool({
+          description: "Health check",
+          args: {},
+          async execute() { return "Conductor is active."; }
+        })
+      },
+
+      config: async (config: any) => {
+        console.log("[Conductor] config handler: Merging commands and agent...");
+        
+        config.command = {
+          ...(config.command || {}),
+          "conductor:setup": { template: setup.prompt, description: setup.description, agent: "conductor" },
+          "conductor:newTrack": { template: newTrack.prompt, description: newTrack.description, agent: "conductor" },
+          "conductor:implement": { template: implement.prompt, description: implement.description, agent: "conductor" },
+          "conductor:status": { template: status.prompt, description: status.description, agent: "conductor" },
+          "conductor:revert": { template: revert.prompt, description: revert.description, agent: "conductor" }
+        };
+
+        config.agent = {
+          ...(config.agent || {}),
+          "conductor": {
+            description: "Spec-Driven Development Architect.",
+            mode: "primary",
+            prompt: agentPrompt,
+            permission: {
+              conductor_setup: "allow",
+              conductor_new_track: "allow",
+              conductor_implement: "allow",
+              conductor_status: "allow",
+              conductor_revert: "allow"
+            }
           }
+        };
+      },
 
-          injection += "\n### DELEGATED AUTHORITY\n";
-          injection += "- **EXECUTE:** Implement the requested task using the Workflow.\n";
-          injection += "- **REFINE:** You have authority to update `plan.md` if it is flawed.\n";
-          injection += "- **ESCALATE:** If you modify the Plan or Spec, report 'PLAN_UPDATED' immediately.\n";
-          injection += "--- [END INJECTION] ---\n";
-
-          output.args.objective += injection;
+      "tool.execute.before": async (input: any, output: any) => {
+        if (input.tool === "delegate_to_agent") {
+          const agentName = (output.args.agent_name || output.args.agent || "").toLowerCase();
+          if (agentName.includes("sisyphus")) {
+            const conductorDir = join(ctx.directory, "conductor");
+            const safeRead = async (path: string) => {
+               try { if (existsSync(path)) return await readFile(path, "utf-8"); } catch (e) {}
+               return null;
+            };
+            const workflowMd = await safeRead(join(conductorDir, "workflow.md"));
+            let injection = "\n\n--- [SYSTEM INJECTION: CONDUCTOR CONTEXT PACKET] ---\n";
+            injection += "You are receiving this task from the Conductor Architect.\n";
+            if (workflowMd) {
+               injection += "\n### DEVELOPMENT WORKFLOW\n" + workflowMd + "\n";
+            }
+            injection += "\n### DELEGATED AUTHORITY\n- **EXECUTE:** Implement the requested task.\n- **REFINE:** You have authority to update `plan.md`.\n";
+            injection += "--- [END INJECTION] ---\n";
+            output.args.objective += injection;
+          }
         }
       }
-    }
-  };
+    };
+  } catch (err) {
+    console.error("[Conductor] FATAL: Plugin initialization failed:", err);
+    throw err;
+  }
 };
 
 export default ConductorPlugin;
-
