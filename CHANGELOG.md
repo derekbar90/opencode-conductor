@@ -1,3 +1,16 @@
+# [1.15.0](https://github.com/derekbar90/opencode-conductor/compare/v1.14.0...v1.15.0) (2026-01-05)
+
+
+### Bug Fixes
+
+* disable delegate strategy and enforce manual mode ([7a02214](https://github.com/derekbar90/opencode-conductor/commit/7a022149f120ee907b83b59ed0bc2044fc0a0636))
+
+
+### Features
+
+* disable subtask mode for all Conductor commands ([58d0f83](https://github.com/derekbar90/opencode-conductor/commit/58d0f838c007eca70f77302ca0d71d6b042c2f6b))
+* inject implement.toml protocol into Sisyphus delegation context ([d7d18a1](https://github.com/derekbar90/opencode-conductor/commit/d7d18a1623de6c61a73cd02e354a6f5e75eeac9a))
+
 # [1.14.0](https://github.com/derekbar90/opencode-conductor/compare/v1.13.0...v1.14.0) (2026-01-05)
 
 
