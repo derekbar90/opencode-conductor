@@ -84,14 +84,6 @@ const ConductorPlugin: Plugin = async (ctx) => {
     console.log("[Conductor] All components ready. Injecting config...");
 
     return {
-      tool: {
-        "conductor_health": tool({
-          description: "Health check",
-          args: {},
-          async execute() { return "Conductor is active."; }
-        })
-      },
-
       config: async (config: any) => {
         console.log("[Conductor] config handler: Merging commands and agent...");
         
@@ -123,19 +115,35 @@ const ConductorPlugin: Plugin = async (ctx) => {
 
       "tool.execute.before": async (input: any, output: any) => {
         if (input.tool === "delegate_to_agent") {
-          const agentName = (output.args.agent_name || output.args.agent || "").toLowerCase();
-          if (agentName.includes("sisyphus")) {
+          const agentName = (output.args.agent_name || output.args.agent || "");
+          // Sisyphus must be capital S
+          if (agentName.includes("Sisyphus")) {
             const conductorDir = join(ctx.directory, "conductor");
             const safeRead = async (path: string) => {
                try { if (existsSync(path)) return await readFile(path, "utf-8"); } catch (e) {}
                return null;
             };
+
             const workflowMd = await safeRead(join(conductorDir, "workflow.md"));
+            
+            // Try to find track-specific plan.md if possible
+            let trackPlanMd = null;
+            const trackIdMatch = output.args.objective.match(/tracks\/([^\/]+)\/plan\.md/);
+            if (trackIdMatch) {
+              trackPlanMd = await safeRead(join(conductorDir, "tracks", trackIdMatch[1], "plan.md"));
+            }
+
             let injection = "\n\n--- [SYSTEM INJECTION: CONDUCTOR CONTEXT PACKET] ---\n";
             injection += "You are receiving this task from the Conductor Architect.\n";
+            
             if (workflowMd) {
                injection += "\n### DEVELOPMENT WORKFLOW\n" + workflowMd + "\n";
             }
+            
+            if (trackPlanMd) {
+               injection += "\n### IMPLEMENTATION PLAN\n" + trackPlanMd + "\n";
+            }
+
             injection += "\n### DELEGATED AUTHORITY\n- **EXECUTE:** Implement the requested task.\n- **REFINE:** You have authority to update `plan.md`.\n";
             injection += "--- [END INJECTION] ---\n";
             output.args.objective += injection;
