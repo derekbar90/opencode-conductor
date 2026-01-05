@@ -1,4 +1,4 @@
-import { type Plugin } from "@opencode-ai/plugin";
+import { type Plugin, type Hooks } from "@opencode-ai/plugin";
 import { tool } from "@opencode-ai/plugin/tool";
 import { join, dirname } from "path";
 import { homedir } from "os";
@@ -84,7 +84,7 @@ const ConductorPlugin: Plugin = async (ctx) => {
     console.log("[Conductor] All components ready. Injecting config...");
 
     return {
-      config: async (config: any) => {
+      config: async (config: Parameters<NonNullable<Hooks["config"]>>[0]) => {
         console.log("[Conductor] config handler: Merging commands and agent...");
         
         config.command = {
@@ -103,17 +103,20 @@ const ConductorPlugin: Plugin = async (ctx) => {
             mode: "primary",
             prompt: agentPrompt,
             permission: {
-              conductor_setup: "allow",
-              conductor_new_track: "allow",
-              conductor_implement: "allow",
-              conductor_status: "allow",
-              conductor_revert: "allow"
+              edit: "allow",
+              bash: "allow",
+              webfetch: "allow",
+              doom_loop: "allow",
+              external_directory: "deny"
             }
           }
         };
       },
 
-      "tool.execute.before": async (input: any, output: any) => {
+      "tool.execute.before": async (
+        input: Parameters<NonNullable<Hooks["tool.execute.before"]>>[0],
+        output: Parameters<NonNullable<Hooks["tool.execute.before"]>>[1]
+      ) => {
         if (input.tool === "delegate_to_agent") {
           const agentName = (output.args.agent_name || output.args.agent || "");
           // Sisyphus must be capital S
