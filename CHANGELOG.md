@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/derekbar90/opencode-conductor/compare/v1.9.0...v1.10.0) (2026-01-05)
+
+
+### Features
+
+* enable native command architecture support ([cdaaecd](https://github.com/derekbar90/opencode-conductor/commit/cdaaecd29c0c530fade72dcd43c55f347a575bf9))
+
 # [1.9.0](https://github.com/derekbar90/opencode-conductor/compare/v1.8.2...v1.9.0) (2026-01-05)
 
 
