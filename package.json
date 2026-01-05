@@ -1,6 +1,6 @@
 {
   "name": "opencode-conductor-plugin",
-  "version": "1.8.2",
+  "version": "1.9.0",
   "description": "Conductor plugin for OpenCode",
   "type": "module",
   "repository": "derekbar90/opencode-conductor",

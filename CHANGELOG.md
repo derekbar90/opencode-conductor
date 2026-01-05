@@ -1,3 +1,11 @@
+# [1.9.0](https://github.com/derekbar90/opencode-conductor/compare/v1.8.2...v1.9.0) (2026-01-05)
+
+
+### Features
+
+* **implement:** implement dynamic strategy injection to eliminate cognitive load ([d481b1f](https://github.com/derekbar90/opencode-conductor/commit/d481b1f3bcfc0b34a6c1ed67dd8eff6f8501a4e6))
+* modernize command architecture and adopt v1.1.1 permissions ([24a84aa](https://github.com/derekbar90/opencode-conductor/commit/24a84aaea498cd6ab4b3dd68909ec906d81f7365))
+
 ## [1.8.2](https://github.com/derekbar90/opencode-conductor/compare/v1.8.1...v1.8.2) (2025-12-31)
 
 
