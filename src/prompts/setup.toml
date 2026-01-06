@@ -162,8 +162,8 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
     > You can always edit the generated file with the Gemini CLI built-in option "Modify with external editor" (if present), or with your favorite external editor after this step.
     > Please respond with A or B."
     - **Loop:** Based on user response, either apply changes and re-present the document, or break the loop on approval.
-5.  **Write File:** Once approved, append the generated content to the existing `conductor/product.md` file, preserving the `# Initial Concept` section.
-6.  **Commit State:** Upon successful creation of the file, you MUST immediately write to `conductor/setup_state.json` with the exact content:
+5.  **Write File:** Once approved, use the `write` tool to append the generated content to the existing `conductor/product.md` file, preserving the `# Initial Concept` section.
+6.  **Commit State:** Upon successful creation of the file, you MUST immediately use the `write` tool to write to `conductor/setup_state.json` with the exact content:
     `{"last_successful_step": "2.1_product_guide"}`
 7.  **Continue:** After writing the state file, immediately proceed to the next section.
 
@@ -212,8 +212,8 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
     > You can always edit the generated file with the Gemini CLI built-in option "Modify with external editor" (if present), or with your favorite external editor after this step.
     > Please respond with A or B."
     - **Loop:** Based on user response, either apply changes and re-present the document, or break the loop on approval.
-5.  **Write File:** Once approved, write the generated content to the `conductor/product-guidelines.md` file.
-6.  **Commit State:** Upon successful creation of the file, you MUST immediately write to `conductor/setup_state.json` with the exact content:
+5.  **Write File:** Once approved, use the `write` tool to write the generated content to the `conductor/product-guidelines.md` file.
+6.  **Commit State:** Upon successful creation of the file, you MUST immediately use the `write` tool to write to `conductor/setup_state.json` with the exact content:
     `{"last_successful_step": "2.2_product_guidelines"}`
 7.  **Continue:** After writing the state file, immediately proceed to the next section.
 
@@ -269,15 +269,15 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
     > You can always edit the generated file with the Gemini CLI built-in option "Modify with external editor" (if present), or with your favorite external editor after this step.
     > Please respond with A or B."
     - **Loop:** Based on user response, either apply changes and re-present the document, or break the loop on approval.
-6.  **Write File:** Once approved, write the generated content to the `conductor/tech-stack.md` file.
-7.  **Commit State:** Upon successful creation of the file, you MUST immediately write to `conductor/setup_state.json` with the exact content:
+6.  **Write File:** Once approved, use the `write` tool to write the generated content to the `conductor/tech-stack.md` file.
+7.  **Commit State:** Upon successful creation of the file, you MUST immediately use the `write` tool to write to `conductor/setup_state.json` with the exact content:
     `{"last_successful_step": "2.3_tech_stack"}`
 8.  **Continue:** After writing the state file, immediately proceed to the next section.
 
 ### 2.4 Select Guides (Interactive)
 1.  **Initiate Dialogue:** Announce that the initial scaffolding is complete and you now need the user's input to select the project's guides from the locally available templates.
 2.  **Select Code Style Guides:**
-    -   List the available style guides by running `ls {{templatesDir}}/code_styleguides/`.
+    -   List the available style guides by using the `list` tool on `{{templatesDir}}/code_styleguides/`.
     -   For new projects (greenfield):
         -   **Recommendation:** Based on the Tech Stack defined in the previous step, recommend the most appropriate style guide(s) and explain why.
         -   Ask the user how they would like to proceed:

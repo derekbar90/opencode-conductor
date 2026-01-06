@@ -38,7 +38,7 @@ Your workflow MUST anticipate and handle common non-linear Git histories, such a
 
     *   **PATH B: Guided Selection Menu**
         1.  **Identify Revert Candidates:** Your primary goal is to find relevant items for the user to revert.
-            *   **Scan All Plans:** You MUST read the main `conductor/tracks.md` and every `conductor/tracks/*/plan.md` file.
+            *   **Scan All Plans:** You MUST use the `read` tool to read the main `conductor/tracks.md` and every `conductor/tracks/*/plan.md` file.
             *   **Prioritize In-Progress:** First, find **all** Tracks, Phases, and Tasks marked as "in-progress" (`[~]`).
             *   **Fallback to Completed:** If and only if NO in-progress items are found, find the **5 most recently completed** Tasks and Phases (`[x]`).
         2.  **Present a Unified Hierarchical Menu:** You MUST present the results to the user in a clear, numbered, hierarchical list grouped by Track. The introductory text MUST change based on the context.

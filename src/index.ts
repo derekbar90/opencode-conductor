@@ -5,6 +5,13 @@ import { homedir } from "os";
 import { existsSync, readFileSync } from "fs";
 import { readFile } from "fs/promises";
 import { fileURLToPath } from "url";
+import { createDelegationTool } from "./tools/delegate.js";
+import {
+  BackgroundManager,
+  createBackgroundTask,
+  createBackgroundOutput,
+  createBackgroundCancel,
+} from "./tools/background.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,33 +26,9 @@ const ConductorPlugin: Plugin = async (ctx) => {
   try {
     console.log("[Conductor] Initializing plugin...");
 
-    // 1. Detect oh-my-opencode for synergy features
-    const configPath = join(homedir(), ".config", "opencode", "opencode.json");
-    let isOMOActive = false;
+    const backgroundManager = new BackgroundManager(ctx);
 
-    try {
-      if (existsSync(configPath)) {
-        const config = JSON.parse(readFileSync(configPath, "utf-8"));
-        isOMOActive = config.plugin?.some((p: string) =>
-          p.includes("oh-my-opencode"),
-        );
-      }
-    } catch (e) {
-      const omoPath = join(
-        homedir(),
-        ".config",
-        "opencode",
-        "node_modules",
-        "oh-my-opencode",
-      );
-      isOMOActive = existsSync(omoPath);
-    }
-
-    console.log(
-      `[Conductor] Plugin environment detected. (OMO Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`,
-    );
-
-    // 2. Helper to load and process prompt templates (Manual TOML Parsing)
+    // 1. Helper to load and process prompt templates (Manual TOML Parsing)
     const loadPrompt = async (
       filename: string,
       replacements: Record<string, string> = {},
@@ -62,7 +45,6 @@ const ConductorPlugin: Plugin = async (ctx) => {
           throw new Error(`Could not parse prompt text from ${filename}`);
 
         const defaults = {
-          isOMOActive: isOMOActive ? "true" : "false",
           templatesDir: join(dirname(__dirname), "templates"),
         };
 
@@ -81,7 +63,7 @@ const ConductorPlugin: Plugin = async (ctx) => {
       }
     };
 
-    // 3. Load Strategies
+    // 2. Load Strategies
     let strategySection = "";
     try {
       const strategyFile = "manual.md"; // Force manual strategy for now
@@ -96,7 +78,7 @@ const ConductorPlugin: Plugin = async (ctx) => {
       strategySection = "SYSTEM ERROR: Could not load execution strategy.";
     }
 
-    // 4. Load all Command Prompts (Parallel)
+    // 3. Load all Command Prompts (Parallel)
     const [setup, newTrack, implement, status, revert, workflowMd] =
       await Promise.all([
         loadPrompt("setup.toml"),
@@ -110,19 +92,30 @@ const ConductorPlugin: Plugin = async (ctx) => {
         safeRead(join(ctx.directory, "conductor", "workflow.md")),
       ]);
 
-    // 5. Extract Agent Prompt
-    const agentMd = await readFile(
-      join(__dirname, "prompts", "agent", "conductor.md"),
-      "utf-8",
-    );
-    const agentPrompt = agentMd.split("---").pop()?.trim() || "";
+    // 4. Extract Agent Prompts
+    const [conductorMd, implementerMd] = await Promise.all([
+      readFile(join(__dirname, "prompts", "agent", "conductor.md"), "utf-8"),
+      readFile(join(__dirname, "prompts", "agent", "implementer.md"), "utf-8"),
+    ]);
+
+    const conductorPrompt = conductorMd.split("---").pop()?.trim() || "";
+    const implementerPrompt = implementerMd.split("---").pop()?.trim() || "";
 
     console.log("[Conductor] All components ready. Injecting config...");
 
     return {
-      config: async (config: Parameters<NonNullable<Hooks["config"]>>[0]) => {
+      tool: {
+        "conductor:delegate": createDelegationTool(ctx),
+        "conductor:background_task": createBackgroundTask(backgroundManager),
+        "conductor:background_output":
+          createBackgroundOutput(backgroundManager),
+        "conductor:background_cancel":
+          createBackgroundCancel(backgroundManager),
+      },
+      config: async (config) => {
+        if (!config) return;
         console.log(
-          "[Conductor] config handler: Merging commands and agent...",
+          "[Conductor] config handler: Merging commands and agents...",
         );
 
         config.command = {
@@ -140,6 +133,7 @@ const ConductorPlugin: Plugin = async (ctx) => {
           "conductor:implement": {
             template: implement.prompt,
             description: implement.description,
+            agent: "conductor_implementer",
           },
           "conductor:status": {
             template: status.prompt,
@@ -156,29 +150,75 @@ const ConductorPlugin: Plugin = async (ctx) => {
         config.agent = {
           ...(config.agent || {}),
           conductor: {
-            description: "Spec-Driven Development Architect.",
+            description: "Conductor Protocol Steward.",
             mode: "primary",
-            prompt: agentPrompt + workflowMd,
+            prompt:
+              conductorPrompt +
+              (workflowMd ? "\n\n### PROJECT WORKFLOW\n" + workflowMd : ""),
             permission: {
-              edit: "allow",
               bash: "allow",
+              edit: "allow",
               webfetch: "allow",
-              doom_loop: "allow",
               external_directory: "deny",
+            },
+            tools: {
+              bash: true,
+              edit: true,
+              write: true,
+              read: true,
+              grep: true,
+              glob: true,
+              list: true,
+              lsp: true,
+              patch: true,
+              skill: true,
+              todowrite: true,
+              todoread: true,
+              webfetch: true,
+            },
+          },
+          conductor_implementer: {
+            description: "Conductor Protocol Implementer.",
+            mode: "primary",
+            prompt:
+              implementerPrompt +
+              (workflowMd ? "\n\n### PROJECT WORKFLOW\n" + workflowMd : ""),
+            permission: {
+              bash: "allow",
+              edit: "allow",
+              webfetch: "allow",
+              external_directory: "deny",
+            },
+            tools: {
+              bash: true,
+              edit: true,
+              write: true,
+              read: true,
+              grep: true,
+              glob: true,
+              list: true,
+              lsp: true,
+              patch: true,
+              skill: true,
+              todowrite: true,
+              todoread: true,
+              webfetch: true,
+              "conductor:delegate": true,
+              "conductor:background_task": true,
+              "conductor:background_output": true,
+              "conductor:background_cancel": true,
             },
           },
         };
       },
 
-      "tool.execute.before": async (
-        input: Parameters<NonNullable<Hooks["tool.execute.before"]>>[0],
-        output: Parameters<NonNullable<Hooks["tool.execute.before"]>>[1],
-      ) => {
+      "tool.execute.before": async (input, output) => {
         const delegationTools = [
           "delegate_to_agent",
           "task",
           "background_task",
-          "call_omo_agent",
+          "conductor:delegate",
+          "conductor:background_task",
         ];
 
         if (delegationTools.includes(input.tool)) {
@@ -187,10 +227,9 @@ const ConductorPlugin: Plugin = async (ctx) => {
           const workflowMd = await safeRead(join(conductorDir, "workflow.md"));
 
           if (workflowMd) {
-            let injection =
-              "\n\n--- [SYSTEM INJECTION: CONDUCTOR CONTEXT PACKET] ---\n";
+            let injection = "\n\n--- [SYSTEM INJECTION: CONDUCTOR CONTEXT PACKET] ---\n";
             injection +=
-              "You are receiving this task from the Conductor Architect.\n";
+              "You are receiving this task from the Conductor.\n";
             injection +=
               "You MUST adhere to the following project workflow rules:\n";
 
@@ -202,7 +241,7 @@ const ConductorPlugin: Plugin = async (ctx) => {
             }
 
             injection +=
-              "\n### DELEGATED AUTHORITY\n- **EXECUTE:** Implement the requested task.\n- **REFINE:** You have authority to update `plan.md`.\n";
+              "\n### DELEGATED AUTHORITY\n- **EXECUTE:** Implement the requested task.\n- **REFINE:** You have authority to update `plan.md` and `spec.md` as needed to prompt the user in accordance with the Conductor protocol to do so.\n";
             injection += "--- [END INJECTION] ---\n";
 
             // Inject into the primary instruction field depending on the tool's schema

@@ -90,8 +90,8 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
     > "Now I will create an implementation plan (plan.md) based on the specification."
 
 2.  **Generate Plan:**
-    *   Read the confirmed `spec.md` content for this track.
-    *   Read the selected workflow file from `conductor/workflow.md`.
+    *   Use the `read` tool to read the confirmed `spec.md` content for this track.
+    *   Use the `read` tool to read the selected workflow file from `conductor/workflow.md`.
     *   Generate a `plan.md` with a hierarchical list of Phases, Tasks, and Sub-tasks.
     *   **CRITICAL:** The plan structure MUST adhere to the methodology in the workflow file (e.g., TDD tasks for "Write Tests" and "Implement").
     *   Include status markers `[ ]` for each task/sub-task.
@@ -109,7 +109,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 ### 2.4 Create Track Artifacts and Update Main Plan
 
-1.  **Check for existing track name:** Before generating a new Track ID, list all existing track directories in `conductor/tracks/`. Extract the short names from these track IDs (e.g., ``shortname_YYYYMMDD`` -> `shortname`). If the proposed short name for the new track (derived from the initial description) matches an existing short name, halt the `newTrack` creation. Explain that a track with that name already exists and suggest choosing a different name or resuming the existing track.
+1.  **Check for existing track name:** Before generating a new Track ID, use the `list` tool to list all existing track directories in `conductor/tracks/`. Extract the short names from these track IDs (e.g., ``shortname_YYYYMMDD`` -> `shortname`). If the proposed short name for the new track (derived from the initial description) matches an existing short name, halt the `newTrack` creation. Explain that a track with that name already exists and suggest choosing a different name or resuming the existing track.
 2.  **Generate Track ID:** Create a unique Track ID (e.g., ``shortname_YYYYMMDD``).
 3.  **Create Directory:** Create a new directory: `conductor/tracks/<track_id>/`
 4.  **Create `metadata.json`:** Create a metadata file at `conductor/tracks/<track_id>/metadata.json` with content like:
@@ -125,8 +125,8 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
     ```
     *   Populate fields with actual values. Use the current timestamp.
 5.  **Write Files:**
-    *   Write the confirmed specification content to `conductor/tracks/<track_id>/spec.md`.
-    *   Write the confirmed plan content to `conductor/tracks/<track_id>/plan.md`.
+    *   Use the `write` tool to write the confirmed specification content to `conductor/tracks/<track_id>/spec.md`.
+    *   Use the `write` tool to write the confirmed plan content to `conductor/tracks/<track_id>/plan.md`.
 6.  **Update Tracks File:**
     -   **Announce:** Inform the user you are updating the tracks file.
     -   **Append Section:** Append a new section for the track to the end of `conductor/tracks.md`. The format MUST be:
