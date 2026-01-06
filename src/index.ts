@@ -153,13 +153,18 @@ const ConductorPlugin: Plugin = async (ctx) => {
             mode: "primary",
             prompt: conductorPrompt,
             permission: {
+              "read": {
+                "*": "allow",
+                "*.env": "deny",
+                "*.env.*": "deny",
+                "*.env.example": "allow"
+              },
               bash: "allow",
               edit: "allow",
               webfetch: "allow",
               external_directory: "deny",
-              // @ts-ignore
-              list: "allow"
-            },
+              list: "allow",
+            } as any,
             tools: {
               bash: true,
               edit: true,
@@ -178,11 +183,26 @@ const ConductorPlugin: Plugin = async (ctx) => {
             mode: "primary",
             prompt: implementerPrompt,
             permission: {
+              "read": {
+                "*": "allow",
+                "*.env": "deny",
+                "*.env.*": "deny",
+                "*.env.example": "allow"
+              },
               bash: "allow",
               edit: "allow",
               webfetch: "allow",
               external_directory: "deny",
-            },
+              list: "allow",
+              "conductor_delegate": "allow",
+              "conductor_bg_task": "allow",
+              "conductor_bg_output": "allow",
+              "conductor_bg_cancel": "allow",
+              grep: "allow",
+              glob: "allow",
+              todowrite: "allow",
+              todoread: "allow",
+            } as any,
             tools: {
               bash: true,
               edit: true,
