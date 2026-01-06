@@ -1,3 +1,10 @@
+## [1.26.1](https://github.com/derekbar90/opencode-conductor/compare/v1.26.0...v1.26.1) (2026-01-06)
+
+
+### Bug Fixes
+
+* update description for conductor_status tool to reflect status protocol directive ([8e5fb21](https://github.com/derekbar90/opencode-conductor/commit/8e5fb215701b80e09420bb0eedb63a307e3dc3a0))
+
 # [1.26.0](https://github.com/derekbar90/opencode-conductor/compare/v1.25.0...v1.26.0) (2026-01-06)
 
 
