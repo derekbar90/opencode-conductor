@@ -1,3 +1,10 @@
+## [1.17.3](https://github.com/derekbar90/opencode-conductor/compare/v1.17.2...v1.17.3) (2026-01-06)
+
+
+### Bug Fixes
+
+* **plugin:** Align built-in tools and shorten custom tool names to resolve validation error ([aa005bb](https://github.com/derekbar90/opencode-conductor/commit/aa005bb6cdb38766847316031c325b81bb334171))
+
 ## [1.17.2](https://github.com/derekbar90/opencode-conductor/compare/v1.17.1...v1.17.2) (2026-01-06)
 
 
