@@ -12,8 +12,8 @@ permission:
   lsp: allow
   patch: allow
   skill: allow
-  todowrite: allow
-  todoread: allow
+  todo_write: allow
+  todo_read: allow
   webfetch: allow
 ---
 # Conductor Agent
