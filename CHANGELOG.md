@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/derekbar90/opencode-conductor/compare/v1.15.0...v1.16.0) (2026-01-06)
+
+
+### Features
+
+* **plugin:** Broaden agent delegation support and inject workflow for all sub-agents ([568fb11](https://github.com/derekbar90/opencode-conductor/commit/568fb1192ec894feeaf805f683ab0774803d88a4))
+
 # [1.15.0](https://github.com/derekbar90/opencode-conductor/compare/v1.14.0...v1.15.0) (2026-01-05)
 
 
