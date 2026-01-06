@@ -94,7 +94,7 @@ export class BackgroundManager {
       body: {
         agent: input.agent,
         tools: {
-          "conductor_background_task": false,
+          "conductor_bg_task": false,
           "conductor_delegate": false,
         },
         parts: [{ type: "text", text: input.prompt }],
@@ -122,7 +122,7 @@ export class BackgroundManager {
       body: {
         parts: [{ type: "text", text: `[BACKGROUND TASK CANCELLED] Task "${task.description}" has been manually cancelled.` }],
       },
-    }).catch(() => {}) // Ignore errors here, as the parent session might be gone
+    }).catch(() => {}) 
 
     return `Task ${id} cancelled successfully.`
   }
@@ -156,14 +156,14 @@ export class BackgroundManager {
   }
 
   private async notifyParentSession(task: BackgroundTask) {
-    const message = `[BACKGROUND TASK COMPLETED] Task "${task.description}" finished. Use conductor_background_output with task_id="${task.id}" to get results.`
+    const message = `[BACKGROUND TASK COMPLETED] Task "${task.description}" finished. Use conductor_bg_output with task_id="${task.id}" to get results.`
     
     await this.client.session.prompt({
       path: { id: task.parentSessionID },
       body: {
         parts: [{ type: "text", text: message }],
       },
-    }).catch(() => {}) // Ignore errors here, as the parent session might be gone
+    }).catch(() => {})
   }
 
   getTask(id: string): BackgroundTask | undefined {
@@ -227,7 +227,6 @@ export function createBackgroundOutput(manager: BackgroundManager): ToolDefiniti
         const timeoutMs = Math.min(args.timeout ?? 60000, 600000)
         while (Date.now() - startTime < timeoutMs) {
           await new Promise(r => setTimeout(r, 2000))
-          // Re-fetch task to get the latest status
           if (manager.getTask(args.task_id)?.status === "completed") break
         }
       }

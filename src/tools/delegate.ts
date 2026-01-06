@@ -22,13 +22,12 @@ export function createDelegationTool(ctx: PluginInput): ToolDefinition {
       const sessionID = createResult.data.id
 
       // 2. Send the prompt to the subagent
-      // Note: We disable delegation tools for the subagent to prevent infinite loops
       await (ctx as any).client.session.prompt({
         path: { id: sessionID },
         body: {
           agent: args.subagent_type,
           tools: {
-            "conductor_delegate": false, // Disable this tool for the child session
+            "conductor_delegate": false, 
           },
           parts: [{ type: "text", text: args.prompt }],
         },

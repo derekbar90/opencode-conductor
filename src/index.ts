@@ -106,11 +106,9 @@ const ConductorPlugin: Plugin = async (ctx) => {
     return {
       tool: {
         "conductor_delegate": createDelegationTool(ctx),
-        "conductor_background_task": createBackgroundTask(backgroundManager),
-        "conductor_background_output":
-          createBackgroundOutput(backgroundManager),
-        "conductor_background_cancel":
-          createBackgroundCancel(backgroundManager),
+        "conductor_bg_task": createBackgroundTask(backgroundManager),
+        "conductor_bg_output": createBackgroundOutput(backgroundManager),
+        "conductor_bg_cancel": createBackgroundCancel(backgroundManager),
       },
       config: async (config) => {
         if (!config) return;
@@ -169,9 +167,8 @@ const ConductorPlugin: Plugin = async (ctx) => {
               grep: true,
               glob: true,
               list: true,
-              lsp: true,
-              patch: true,
-              skill: true,
+              todowrite: true,
+              todoread: true,
               webfetch: true,
             },
           },
@@ -195,14 +192,13 @@ const ConductorPlugin: Plugin = async (ctx) => {
               grep: true,
               glob: true,
               list: true,
-              lsp: true,
-              patch: true,
-              skill: true,
+              todowrite: true,
+              todoread: true,
               webfetch: true,
               "conductor_delegate": true,
-              "conductor_background_task": true,
-              "conductor_background_output": true,
-              "conductor_background_cancel": true,
+              "conductor_bg_task": true,
+              "conductor_bg_output": true,
+              "conductor_bg_cancel": true,
             },
           },
         };
@@ -214,7 +210,7 @@ const ConductorPlugin: Plugin = async (ctx) => {
           "task",
           "background_task",
           "conductor_delegate",
-          "conductor_background_task",
+          "conductor_bg_task",
         ];
 
         if (delegationTools.includes(input.tool)) {
