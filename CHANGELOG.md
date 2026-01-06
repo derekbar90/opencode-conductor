@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/derekbar90/opencode-conductor/compare/v1.19.1...v1.20.0) (2026-01-06)
+
+
+### Features
+
+* **conductor:** update permissions and streamline prompt configurations ([54149c7](https://github.com/derekbar90/opencode-conductor/commit/54149c74d422711a2a1bf13c1f60accaee492d82))
+
 ## [1.19.1](https://github.com/derekbar90/opencode-conductor/compare/v1.19.0...v1.19.1) (2026-01-06)
 
 
