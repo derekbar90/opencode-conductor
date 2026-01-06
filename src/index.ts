@@ -63,21 +63,6 @@ const ConductorPlugin: Plugin = async (ctx) => {
       }
     };
 
-    // 2. Load Strategies
-    let strategySection = "";
-    try {
-      const strategyFile = "manual.md"; // Force manual strategy for now
-      const strategyPath = join(
-        __dirname,
-        "prompts",
-        "strategies",
-        strategyFile,
-      );
-      strategySection = await readFile(strategyPath, "utf-8");
-    } catch (e) {
-      strategySection = "SYSTEM ERROR: Could not load execution strategy.";
-    }
-
     // 3. Load all Command Prompts (Parallel)
     const [setup, newTrack, implement, status, revert, workflowMd] =
       await Promise.all([
@@ -85,7 +70,6 @@ const ConductorPlugin: Plugin = async (ctx) => {
         loadPrompt("newTrack.toml", { args: "$ARGUMENTS" }),
         loadPrompt("implement.toml", {
           track_name: "$ARGUMENTS",
-          strategy_section: strategySection,
         }),
         loadPrompt("status.toml"),
         loadPrompt("revert.toml", { target: "$ARGUMENTS" }),

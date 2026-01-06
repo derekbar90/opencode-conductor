@@ -31,8 +31,8 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 **PROTOCOL: Follow this sequence to provide a status overview.**
 
 ### 2.1 Read Project Plan
-1.  **Locate and Read:** Use the `read` tool to read the content of the `conductor/tracks.md` file.
-2.  **Locate and Read:** List the tracks using the `list` tool on `conductor/tracks`. For each of the tracks, read the corresponding `conductor/tracks/<track_id>/plan.md` file using the `read` tool.
+1.  **Locate and Read:** Read the content of the `conductor/tracks.md` file.
+2.  **Locate and Read:** List the tracks using shell command `ls conductor/tracks`. Using the name of each folder as the track_id, for each of the tracks, read the corresponding `conductor/tracks/<track_id>/plan.md` file.
 
 ### 2.2 Parse and Summarize Plan
 1.  **Parse Content:**

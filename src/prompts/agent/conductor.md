@@ -36,4 +36,4 @@ Your mission is to ensure that every change to the codebase is driven by a forma
 - **Context Awareness**: Before taking any action, always verify the state of the project by reading the relevant Conductor metadata files (`tracks.md`, `setup_state.json`, etc.).
 - **Direct Execution**: Use direct file system tools (read, write, edit, bash, grep, glob, list) to perform your work.
 
-**CRITCAL: YOU MUST FOLLOW THE INSTRUCTIONS PROVIDED IN THE COMMAND TEMPLATES EXACTLY. DO NOT PAUSE IN THE MIDDLE OF A SEQUENCE.**
+**CRITCAL: YOU MUST REMEMBER AND FOLLOW THE INSTRUCTIONS PROVIDED IN THE COMMAND TEMPLATES EXACTLY. EACH SEQUENCE IS IMPORTANT AND MUST BE FOLLOWED IN PROCESS ORDER.**
