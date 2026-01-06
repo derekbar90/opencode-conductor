@@ -10,6 +10,13 @@ import {
   createBackgroundOutput,
   createBackgroundCancel,
 } from "./tools/background.js";
+import {
+  createSetupTool,
+  createNewTrackTool,
+  createImplementTool,
+  createStatusTool,
+  createRevertTool,
+} from "./tools/commands.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -92,6 +99,11 @@ const ConductorPlugin: Plugin = async (ctx) => {
         "conductor_bg_task": createBackgroundTask(backgroundManager),
         "conductor_bg_output": createBackgroundOutput(backgroundManager),
         "conductor_bg_cancel": createBackgroundCancel(backgroundManager),
+        "conductor_setup": createSetupTool(ctx),
+        "conductor_newTrack": createNewTrackTool(ctx),
+        "conductor_implement": createImplementTool(ctx),
+        "conductor_status": createStatusTool(ctx),
+        "conductor_revert": createRevertTool(ctx),
       },
       config: async (config) => {
         if (!config) return;
@@ -102,27 +114,27 @@ const ConductorPlugin: Plugin = async (ctx) => {
         config.command = {
           ...(config.command || {}),
           "conductor_setup": {
-            template: setup.prompt,
+            template: "Use the conductor_setup tool to scaffold the project and set up the Conductor environment.",
             description: setup.description,
             agent: "conductor",
           },
           "conductor_newTrack": {
-            template: newTrack.prompt,
+            template: "Use the conductor_newTrack tool to plan a track and generate track-specific spec documents. If arguments were provided with this command, pass them as the 'description' parameter to the tool.",
             description: newTrack.description,
             agent: "conductor",
           },
           "conductor_implement": {
-            template: implement.prompt,
+            template: "Use the conductor_implement tool to execute the tasks defined in the specified track's plan. If a track name was provided as an argument with this command, pass it as the 'track_name' parameter to the tool.",
             description: implement.description,
             agent: "conductor_implementer",
           },
           "conductor_status": {
-            template: status.prompt,
+            template: "Use the conductor_status tool to display the current progress of the project.",
             description: status.description,
             agent: "conductor",
           },
           "conductor_revert": {
-            template: revert.prompt,
+            template: "Use the conductor_revert tool to revert previous work. If a target was provided as an argument with this command (e.g., 'track <track_id>', 'phase <phase_name>', 'task <task_name>'), pass it as the 'target' parameter to the tool.",
             description: revert.description,
             agent: "conductor",
           },
@@ -150,6 +162,11 @@ const ConductorPlugin: Plugin = async (ctx) => {
               todoread: "allow",
               todowrite: "allow",
               webfetch: "allow",
+              "conductor_setup": "allow",
+              "conductor_newTrack": "allow",
+              "conductor_implement": "allow",
+              "conductor_status": "allow",
+              "conductor_revert": "allow",
               external_directory: "deny",
               doom_loop: "ask",
             } as any,
@@ -178,6 +195,11 @@ const ConductorPlugin: Plugin = async (ctx) => {
               "conductor_bg_task": "allow",
               "conductor_bg_output": "allow",
               "conductor_bg_cancel": "allow",
+              "conductor_setup": "allow",
+              "conductor_newTrack": "allow",
+              "conductor_implement": "allow",
+              "conductor_status": "allow",
+              "conductor_revert": "allow",
               external_directory: "deny",
               doom_loop: "ask",
             } as any,
