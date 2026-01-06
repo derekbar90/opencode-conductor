@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/derekbar90/opencode-conductor/compare/v1.22.1...v1.23.0) (2026-01-06)
+
+
+### Features
+
+* **tests:** integrate Vitest for testing framework and add test documentation ([d89be0f](https://github.com/derekbar90/opencode-conductor/commit/d89be0fe66c20ef6247a2aa24e7f2ae1906c51f1))
+
 ## [1.22.1](https://github.com/derekbar90/opencode-conductor/compare/v1.22.0...v1.22.1) (2026-01-06)
 
 
