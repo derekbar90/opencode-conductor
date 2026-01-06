@@ -150,9 +150,7 @@ const ConductorPlugin: Plugin = async (ctx) => {
           conductor: {
             description: "Conductor Protocol Steward.",
             mode: "primary",
-            prompt:
-              conductorPrompt +
-              (workflowMd ? "\n\n### PROJECT WORKFLOW\n" + workflowMd : ""),
+            prompt: conductorPrompt,
             permission: {
               bash: "allow",
               edit: "allow",
@@ -175,9 +173,7 @@ const ConductorPlugin: Plugin = async (ctx) => {
           conductor_implementer: {
             description: "Conductor Protocol Implementer.",
             mode: "primary",
-            prompt:
-              implementerPrompt +
-              (workflowMd ? "\n\n### PROJECT WORKFLOW\n" + workflowMd : ""),
+            prompt: implementerPrompt,
             permission: {
               bash: "allow",
               edit: "allow",
@@ -204,49 +200,49 @@ const ConductorPlugin: Plugin = async (ctx) => {
         };
       },
 
-      "tool.execute.before": async (input, output) => {
-        const delegationTools = [
-          "delegate_to_agent",
-          "task",
-          "background_task",
-          "conductor_delegate",
-          "conductor_bg_task",
-        ];
+      // "tool.execute.before": async (input, output) => {
+      //   const delegationTools = [
+      //     "delegate_to_agent",
+      //     "task",
+      //     "background_task",
+      //     "conductor_delegate",
+      //     "conductor_bg_task",
+      //   ];
 
-        if (delegationTools.includes(input.tool)) {
-          const conductorDir = join(ctx.directory, "conductor");
+      //   if (delegationTools.includes(input.tool)) {
+      //     const conductorDir = join(ctx.directory, "conductor");
 
-          const workflowMd = await safeRead(join(conductorDir, "workflow.md"));
+      //     const workflowMd = await safeRead(join(conductorDir, "workflow.md"));
 
-          if (workflowMd) {
-            let injection = "\n\n--- [SYSTEM INJECTION: CONDUCTOR CONTEXT PACKET] ---\n";
-            injection +=
-              "You are receiving this task from the Conductor.\n";
-            injection +=
-              "You MUST adhere to the following project workflow rules:\n";
+      //     if (workflowMd) {
+      //       let injection = "\n\n--- [SYSTEM INJECTION: CONDUCTOR CONTEXT PACKET] ---\n";
+      //       injection +=
+      //         "You are receiving this task from the Conductor.\n";
+      //       injection +=
+      //         "You MUST adhere to the following project workflow rules:\n";
 
-            injection += "\n### DEVELOPMENT WORKFLOW\n" + workflowMd + "\n";
+      //       injection += "\n### DEVELOPMENT WORKFLOW\n" + workflowMd + "\n";
 
-            if (implement?.prompt) {
-              injection +=
-                "\n### IMPLEMENTATION PROTOCOL\n" + implement.prompt + "\n";
-            }
+      //       if (implement?.prompt) {
+      //         injection +=
+      //           "\n### IMPLEMENTATION PROTOCOL\n" + implement.prompt + "\n";
+      //       }
 
-            injection +=
-              "\n### DELEGATED AUTHORITY\n- **EXECUTE:** Implement the requested task.\n- **REFINE:** You have authority to update `plan.md` and `spec.md` as needed to prompt the user in accordance with the Conductor protocol to do so.\n";
-            injection += "--- [END INJECTION] ---\n";
+      //       injection +=
+      //         "\n### DELEGATED AUTHORITY\n- **EXECUTE:** Implement the requested task.\n- **REFINE:** You have authority to update `plan.md` and `spec.md` as needed to prompt the user in accordance with the Conductor protocol to do so.\n";
+      //       injection += "--- [END INJECTION] ---\n";
 
-            // Inject into the primary instruction field depending on the tool's schema
-            if (typeof output.args.objective === "string") {
-              output.args.objective += injection;
-            } else if (typeof output.args.prompt === "string") {
-              output.args.prompt += injection;
-            } else if (typeof output.args.instruction === "string") {
-              output.args.instruction += injection;
-            }
-          }
-        }
-      },
+      //       // Inject into the primary instruction field depending on the tool's schema
+      //       if (typeof output.args.objective === "string") {
+      //         output.args.objective += injection;
+      //       } else if (typeof output.args.prompt === "string") {
+      //         output.args.prompt += injection;
+      //       } else if (typeof output.args.instruction === "string") {
+      //         output.args.instruction += injection;
+      //       }
+      //     }
+      //   }
+      // },
     };
   } catch (err) {
     console.error("[Conductor] FATAL: Plugin initialization failed:", err);
