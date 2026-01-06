@@ -1,8 +1,6 @@
 import { type Plugin, type Hooks } from "@opencode-ai/plugin";
-import { tool } from "@opencode-ai/plugin/tool";
 import { join, dirname } from "path";
-import { homedir } from "os";
-import { existsSync, readFileSync } from "fs";
+import { existsSync} from "fs";
 import { readFile } from "fs/promises";
 import { fileURLToPath } from "url";
 import { createDelegationTool } from "./tools/delegate.js";
@@ -64,7 +62,7 @@ const ConductorPlugin: Plugin = async (ctx) => {
     };
 
     // 3. Load all Command Prompts (Parallel)
-    const [setup, newTrack, implement, status, revert, workflowMd] =
+    const [setup, newTrack, implement, status, revert] =
       await Promise.all([
         loadPrompt("setup.toml"),
         loadPrompt("newTrack.toml", { args: "$ARGUMENTS" }),
