@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/derekbar90/opencode-conductor/compare/v1.26.1...v1.27.0) (2026-01-06)
+
+
+### Features
+
+* update Loop Protection Directive for clarity ([6b8dec6](https://github.com/derekbar90/opencode-conductor/commit/6b8dec6ce8b3f2cf71c289833ce0594934c0cbe7))
+
 ## [1.26.1](https://github.com/derekbar90/opencode-conductor/compare/v1.26.0...v1.26.1) (2026-01-06)
 
 
