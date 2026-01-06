@@ -1,4 +1,4 @@
-import { tool } from "@opencode-ai/plugin/tool"
+import { tool, type ToolDefinition } from "@opencode-ai/plugin/tool"
 import { createConductorCommand } from "../utils/commandFactory.js"
 import { join, dirname } from "path"
 import { fileURLToPath } from "url"
@@ -72,22 +72,22 @@ export const revertCommand = createConductorCommand({
 })
 
 // Export as functions for backward compatibility
-export function createSetupTool(ctx: any) {
+export function createSetupTool(ctx: any): ToolDefinition {
   return setupCommand(ctx)
 }
 
-export function createNewTrackTool(ctx: any) {
+export function createNewTrackTool(ctx: any): ToolDefinition {
   return newTrackCommand(ctx)
 }
 
-export function createImplementTool(ctx: any) {
+export function createImplementTool(ctx: any): ToolDefinition {
   return implementCommand(ctx)
 }
 
-export function createStatusTool(ctx: any) {
+export function createStatusTool(ctx: any): ToolDefinition {
   return statusCommand(ctx)
 }
 
-export function createRevertTool(ctx: any) {
+export function createRevertTool(ctx: any): ToolDefinition {
   return revertCommand(ctx)
 }
