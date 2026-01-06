@@ -22,6 +22,7 @@ vi.mock("fs", () => ({
 
 describe("Command Tools", () => {
   let mockCtx: PluginInput
+  let mockToolContext: any
   
   beforeEach(() => {
     vi.clearAllMocks()
@@ -30,6 +31,11 @@ describe("Command Tools", () => {
       directory: "/test/project",
       isOMOActive: false,
     } as any
+
+    mockToolContext = {
+      sessionID: "test-session-id",
+      messageID: "test-message-id",
+    }
 
     // Default mocks
     vi.mocked(readFile).mockResolvedValue(`
@@ -55,7 +61,7 @@ description = "Setup"
 prompt = "Setup Prompt"
 `)
       const tool = createSetupTool(mockCtx)
-      const result = await tool.execute({})
+      const result = await tool.execute({}, mockToolContext)
       expect(result).toBe("Setup Prompt")
     })
 
@@ -66,7 +72,7 @@ description = "Setup"
 prompt = "Setup Prompt"
 `)
       const tool = createSetupTool(mockCtx)
-      const result = await tool.execute({})
+      const result = await tool.execute({}, mockToolContext)
       expect(result).toBe("Setup Prompt")
     })
   })
@@ -83,14 +89,14 @@ description = "New Track"
 prompt = "Track description: {{args}}"
 `)
       const tool = createNewTrackTool(mockCtx)
-      const result = await tool.execute({ description: "Login feature" })
+      const result = await tool.execute({ description: "Login feature" }, mockToolContext)
       expect(result).toBe("Track description: Login feature")
     })
 
     it("should return error if not set up", async () => {
       vi.mocked(existsSync).mockReturnValue(false)
       const tool = createNewTrackTool(mockCtx)
-      const result = await tool.execute({})
+      const result = await tool.execute({}, mockToolContext)
       expect(result).toContain("Conductor is not set up")
     })
   })
@@ -107,7 +113,7 @@ description = "Implement"
 prompt = "Track: {{track_name}}"
 `)
       const tool = createImplementTool(mockCtx)
-      const result = await tool.execute({ track_name: "auth-track" })
+      const result = await tool.execute({ track_name: "auth-track" }, mockToolContext)
       expect(result).toBe("Track: auth-track")
     })
 
@@ -123,7 +129,7 @@ prompt = "Strategy: {{strategy_section}}"
        })
 
        const tool = createImplementTool(mockCtx)
-       const result = await tool.execute({})
+       const result = await tool.execute({}, mockToolContext)
        expect(result).toBe("Strategy: Manual Strategy")
     })
   })
@@ -135,7 +141,7 @@ description = "Status"
 prompt = "Status Prompt"
 `)
       const tool = createStatusTool(mockCtx)
-      const result = await tool.execute({})
+      const result = await tool.execute({}, mockToolContext)
       expect(result).toBe("Status Prompt")
     })
   })
@@ -147,7 +153,7 @@ description = "Revert"
 prompt = "Target: {{target}}"
 `)
       const tool = createRevertTool(mockCtx)
-      const result = await tool.execute({ target: "track 1" })
+      const result = await tool.execute({ target: "track 1" }, mockToolContext)
       expect(result).toBe("Target: track 1")
     })
   })
@@ -156,7 +162,7 @@ prompt = "Target: {{target}}"
     it("should throw error if readFile fails", async () => {
       vi.mocked(readFile).mockRejectedValue(new Error("File not found"))
       const tool = createSetupTool(mockCtx)
-      await expect(tool.execute({})).rejects.toThrow("Failed to load prompt")
+      await expect(tool.execute({}, mockToolContext)).rejects.toThrow("Failed to load prompt")
     })
   })
 
@@ -167,7 +173,7 @@ description = "Test"
 prompt = "Templates: {{templatesDir}}, OMO: {{isOMOActive}}"
 `)
       const tool = createNewTrackTool(mockCtx)
-      const result = await tool.execute({})
+      const result = await tool.execute({}, mockToolContext)
       
       expect(result).toContain("Templates:")
       expect(result).toContain("OMO: false")
