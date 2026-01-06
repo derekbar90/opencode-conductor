@@ -1,3 +1,16 @@
+# [1.19.0](https://github.com/derekbar90/opencode-conductor/compare/v1.18.0...v1.19.0) (2026-01-06)
+
+
+### Bug Fixes
+
+* **conductor:** add TypeScript ignore for external_directory permission ([7dce5ef](https://github.com/derekbar90/opencode-conductor/commit/7dce5ef8ab1598e74090258e68e7c61ffa8aab8f))
+
+
+### Features
+
+* **conductor:** enhance tool configuration and permissions ([9bc26eb](https://github.com/derekbar90/opencode-conductor/commit/9bc26ebf928a68b4d4c50900923a999aa5a92dfa))
+* **conductor:** update read permissions and enhance tool access ([023473a](https://github.com/derekbar90/opencode-conductor/commit/023473a731a5fb49c7f33d4939ebbda32a35f134))
+
 # [1.18.0](https://github.com/derekbar90/opencode-conductor/compare/v1.17.3...v1.18.0) (2026-01-06)
 
 
