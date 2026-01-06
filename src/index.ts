@@ -1,111 +1,234 @@
 import { type Plugin } from "@opencode-ai/plugin";
-import { tool } from "@opencode-ai/plugin/tool";
-import { setupCommand } from "./commands/setup.js";
-import { newTrackCommand } from "./commands/newTrack.js";
-import { implementCommand } from "./commands/implement.js";
-import { statusCommand } from "./commands/status.js";
-import { revertCommand } from "./commands/revert.js";
 import { join, dirname } from "path";
-import { homedir } from "os";
-import { existsSync, readFileSync } from "fs";
+import { existsSync } from "fs";
 import { readFile } from "fs/promises";
 import { fileURLToPath } from "url";
+import { createDelegationTool } from "./tools/delegate.js";
+import {
+  BackgroundManager,
+  createBackgroundTask,
+  createBackgroundOutput,
+  createBackgroundCancel,
+} from "./tools/background.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const ConductorPlugin: Plugin = async (ctx) => {
-  // Detect oh-my-opencode for synergy features
-  const configPath = join(homedir(), ".config", "opencode", "opencode.json");
-  let isOMOActive = false;
-
+const safeRead = async (path: string) => {
   try {
-    if (existsSync(configPath)) {
-      const config = JSON.parse(readFileSync(configPath, "utf-8"));
-      isOMOActive = config.plugin?.some((p: string) => p.includes("oh-my-opencode"));
-    }
-  } catch (e) {
-    // Fallback to filesystem check if config read fails
-    const omoPath = join(homedir(), ".config", "opencode", "node_modules", "oh-my-opencode");
-    isOMOActive = existsSync(omoPath);
-  }
+    if (existsSync(path)) return await readFile(path, "utf-8");
+  } catch (e) {}
+  return null;
+};
 
-  console.log(`[Conductor] Plugin tools loaded. (OMO Synergy: ${isOMOActive ? "Enabled" : "Disabled"})`);
+const ConductorPlugin: Plugin = async (ctx) => {
+  try {
+    console.log("[Conductor] Initializing plugin...");
 
-  const extendedCtx = { ...ctx, isOMOActive };
+    const backgroundManager = new BackgroundManager(ctx);
 
-  return {
-    commands: {
-      setup: setupCommand(extendedCtx),
-      newTrack: newTrackCommand(extendedCtx),
-      implement: implementCommand(extendedCtx),
-      status: statusCommand(extendedCtx),
-      revert: revertCommand(extendedCtx),
-    },
-    "tool.execute.before": async (input: any, output: any) => {
-      // INTERCEPT: Sisyphus Delegation Hook
-      // Purpose: Automatically inject the full Conductor context (Plan, Spec, Workflow, Protocol)
-      // whenever the Conductor delegates a task to Sisyphus. This ensures Sisyphus has "Engineering Authority"
-      // without needing the LLM to manually copy-paste huge context blocks.
-      
-      if (input.tool === "delegate_to_agent") {
-        const agentName = (output.args.agent_name || output.args.agent || "").toLowerCase();
-        
-        if (agentName.includes("sisyphus")) {
-          console.log("[Conductor] Intercepting Sisyphus delegation. Injecting Context Packet...");
-          
+    // 1. Helper to load and process prompt templates (Manual TOML Parsing)
+    const loadPrompt = async (
+      filename: string,
+      replacements: Record<string, string> = {},
+    ) => {
+      const promptPath = join(__dirname, "prompts", filename);
+      try {
+        const content = await readFile(promptPath, "utf-8");
+        const descMatch = content.match(/description\s*=\s*\"([^\"]+)\"/);
+        const description = descMatch ? descMatch[1] : "Conductor Command";
+        const promptMatch = content.match(/prompt\s*=\s*\"\"\"([\s\S]*?)\"\"\"/);
+        let promptText = promptMatch ? promptMatch[1] : "";
+
+        if (!promptText)
+          throw new Error(`Could not parse prompt text from ${filename}`);
+
+        const defaults = {
+          templatesDir: join(dirname(__dirname), "templates"),
+        };
+
+        const finalReplacements = { ...defaults, ...replacements };
+        for (const [key, value] of Object.entries(finalReplacements)) {
+          promptText = promptText.replaceAll(`{{${key}}}`, value || "");
+        }
+
+        return { prompt: promptText, description: description };
+      } catch (error) {
+        console.error(`[Conductor] Error loading prompt ${filename}:`, error);
+        return {
+          prompt: `SYSTEM ERROR: Failed to load prompt ${filename}`,
+          description: "Error loading command",
+        };
+      }
+    };
+
+    // 2. Load all Command Prompts (Parallel)
+    const [setup, newTrack, implement, status, revert] =
+      await Promise.all([
+        loadPrompt("setup.toml"),
+        loadPrompt("newTrack.toml", { args: "$ARGUMENTS" }),
+        loadPrompt("implement.toml", {
+          track_name: "$ARGUMENTS",
+        }),
+        loadPrompt("status.toml"),
+        loadPrompt("revert.toml", { target: "$ARGUMENTS" }),
+      ]);
+
+    // 3. Extract Agent Prompts
+    const [conductorMd, implementerMd] = await Promise.all([
+      readFile(join(__dirname, "prompts", "agent", "conductor.md"), "utf-8"),
+      readFile(join(__dirname, "prompts", "agent", "implementer.md"), "utf-8"),
+    ]);
+
+    const conductorPrompt = conductorMd.split("---").pop()?.trim() || "";
+    const implementerPrompt = implementerMd.split("---").pop()?.trim() || "";
+
+    console.log("[Conductor] All components ready. Injecting config...");
+
+    return {
+      tool: {
+        ...(ctx.client.tool || {}),
+        "conductor_delegate": createDelegationTool(ctx),
+        "conductor_bg_task": createBackgroundTask(backgroundManager),
+        "conductor_bg_output": createBackgroundOutput(backgroundManager),
+        "conductor_bg_cancel": createBackgroundCancel(backgroundManager),
+      },
+      config: async (config) => {
+        if (!config) return;
+        console.log(
+          "[Conductor] config handler: Merging commands and agents...",
+        );
+
+        config.command = {
+          ...(config.command || {}),
+          "conductor_setup": {
+            template: setup.prompt,
+            description: setup.description,
+            agent: "conductor",
+          },
+          "conductor_newTrack": {
+            template: newTrack.prompt,
+            description: newTrack.description,
+            agent: "conductor",
+          },
+          "conductor_implement": {
+            template: implement.prompt,
+            description: implement.description,
+            agent: "conductor_implementer",
+          },
+          "conductor_status": {
+            template: status.prompt,
+            description: status.description,
+            agent: "conductor",
+          },
+          "conductor_revert": {
+            template: revert.prompt,
+            description: revert.description,
+            agent: "conductor",
+          },
+        };
+
+        config.agent = {
+          ...(config.agent || {}),
+          conductor: {
+            description: "Conductor Protocol Steward.",
+            mode: "primary",
+            prompt: conductorPrompt,
+            permission: {
+              '*': 'allow',
+              read: {
+                "*": "allow",
+                "*.env": "deny",
+                "*.env.*": "deny",
+                "*.env.example": "allow",
+              },
+              edit: "allow",
+              bash: "allow",
+              grep: "allow",
+              glob: "allow",
+              list: "allow",
+              lsp: "allow",
+              todoread: "allow",
+              todowrite: "allow",
+              webfetch: "allow",
+              external_directory: "deny",
+              doom_loop: "ask",
+            } as any,
+          },
+          conductor_implementer: {
+            description: "Conductor Protocol Implementer.",
+            mode: "primary",
+            prompt: implementerPrompt,
+            permission: {
+              '*': 'allow',
+              read: {
+                "*": "allow",
+                "*.env": "deny",
+                "*.env.*": "deny",
+                "*.env.example": "allow",
+              },
+              edit: "allow",
+              bash: "allow",
+              grep: "allow",
+              glob: "allow",
+              list: "allow",
+              lsp: "allow",
+              todoread: "allow",
+              todowrite: "allow",
+              webfetch: "allow",
+              "conductor_delegate": "allow",
+              "conductor_bg_task": "allow",
+              "conductor_bg_output": "allow",
+              "conductor_bg_cancel": "allow",
+              external_directory: "deny",
+              doom_loop: "ask",
+            } as any,
+          },
+        };
+      },
+
+      "tool.execute.before": async (input, output) => {
+        const delegationTools = [
+          "delegate_to_agent",
+          "task",
+          "background_task",
+          "conductor_delegate",
+          "conductor_bg_task",
+        ];
+
+        if (delegationTools.includes(input.tool)) {
           const conductorDir = join(ctx.directory, "conductor");
-          const promptsDir = join(__dirname, "prompts");
-
-          // Helper to safely read file content
-          const safeRead = async (path: string) => {
-             try {
-               if (existsSync(path)) return await readFile(path, "utf-8");
-             } catch (e) { /* ignore */ }
-             return null;
-          };
-
-          // 1. Read Project Context Files
-          // We need to find the active track to get the correct spec/plan.
-          // Since we don't know the track ID easily here, we look for the 'plan.md' that might be in the args
-          // OR we just rely on the Conductor having already done the setup. 
-          // WAIT: We can't easily guess the track ID here. 
-          // BETTER APPROACH: We rely on the generic 'conductor/workflow.md' and 'prompts/implement.toml'.
-          // For 'spec.md' and 'plan.md', the Conductor usually puts the path in the message. 
-          // However, to be robust, we will read the GLOBAL workflow and the IMPLEMENT prompt.
-          // We will explicitly inject the IMPLEMENT PROMPT as requested.
-          
-          const implementToml = await safeRead(join(promptsDir, "definitions", "implement.toml"));
           const workflowMd = await safeRead(join(conductorDir, "workflow.md"));
-          
-          // Construct the injection block
-          let injection = "\n\n--- [SYSTEM INJECTION: CONDUCTOR CONTEXT PACKET] ---\n";
-          injection += "You are receiving this task from the Conductor Architect.\n";
-          
-          if (implementToml) {
-            injection += "\n### 1. ARCHITECTURAL PROTOCOL (Reference Only)\n";
-            injection += "Use this protocol to understand the project's rigorous standards. DO NOT restart the project management lifecycle (e.g. track selection).\n";
-            injection += "```toml\n" + implementToml + "\n```\n";
-          }
 
           if (workflowMd) {
-             injection += "\n### 2. DEVELOPMENT WORKFLOW\n";
-             injection += "Follow these TDD and Commit rules precisely.\n";
-             injection += "```markdown\n" + workflowMd + "\n```\n";
+            let injection = "\n\n--- [SYSTEM INJECTION: CONDUCTOR CONTEXT PACKET] ---\n";
+            injection += "You are receiving this task from the Conductor.\n";
+            injection += "You MUST adhere to the following project workflow rules:\n";
+            injection += "\n### DEVELOPMENT WORKFLOW\n" + workflowMd + "\n";
+
+            if (implement?.prompt) {
+              injection += "\n### IMPLEMENTATION PROTOCOL\n" + implement.prompt + "\n";
+            }
+
+            injection += "\n### DELEGATED AUTHORITY\n- **EXECUTE:** Implement the requested task.\n- **REFINE:** You have authority to update `plan.md` and `spec.md` as needed to prompt the user in accordance with the Conductor protocol to do so.\n";
+            injection += "--- [END INJECTION] ---\n";
+
+            // Inject into the primary instruction field depending on the tool's schema
+            if (output.args && typeof output.args.objective === "string") {
+              output.args.objective += injection;
+            } else if (output.args && typeof output.args.prompt === "string") {
+              output.args.prompt += injection;
+            } else if (output.args && typeof output.args.instruction === "string") {
+              output.args.instruction += injection;
+            }
           }
-
-          injection += "\n### 3. DELEGATED AUTHORITY\n";
-          injection += "- **EXECUTE:** Implement the requested task using the Workflow.\n";
-          injection += "- **REFINE:** You have authority to update `plan.md` if it is flawed.\n";
-          injection += "- **ESCALATE:** If you modify the Plan or Spec, report 'PLAN_UPDATED' immediately.\n";
-          injection += "--- [END INJECTION] ---\n";
-
-          // Append to the objective
-          output.args.objective += injection;
         }
-      }
-    }
-  };
+      },
+    };
+  } catch (err) {
+    console.error("[Conductor] FATAL: Plugin initialization failed:", err);
+    throw err;
+  }
 };
 
 export default ConductorPlugin;
