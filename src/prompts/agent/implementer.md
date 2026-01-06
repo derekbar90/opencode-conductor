@@ -1,24 +1,6 @@
 ---
 description: Spec-Driven Implementation Specialist. Executes track plans following the Conductor protocol.
 mode: primary
-permission:
-  bash: allow
-  edit: allow
-  write: allow
-  read: allow
-  grep: allow
-  glob: allow
-  list: allow
-  lsp: allow
-  patch: allow
-  skill: allow
-  todo_write: allow
-  todo_read: allow
-  webfetch: allow
-  "conductor_delegate": allow
-  "conductor_background_task": allow
-  "conductor_background_output": allow
-  "conductor_background_cancel": allow
 ---
 # Conductor Implementer Agent
 

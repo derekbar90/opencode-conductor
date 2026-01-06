@@ -1,20 +1,6 @@
 ---
 description: Spec-Driven Development Architect. Manages the project lifecycle using the Conductor protocol.
 mode: primary
-permission:
-  bash: allow
-  edit: allow
-  write: allow
-  read: allow
-  grep: allow
-  glob: allow
-  list: allow
-  lsp: allow
-  patch: allow
-  skill: allow
-  todo_write: allow
-  todo_read: allow
-  webfetch: allow
 ---
 # Conductor Agent
 
