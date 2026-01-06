@@ -10,6 +10,7 @@ const __dirname = dirname(__filename)
 export const setupCommand = createConductorCommand({
   name: "setup.toml",
   description: "Scaffolds the project and sets up the Conductor environment",
+  requiresSetup: false,
   args: {},
 })
 

@@ -28,6 +28,7 @@
     "scripts"
   ],
   "scripts": {
+    "test": "vitest run",
     "postinstall": "node scripts/postinstall.cjs",
     "build": "tsc && npm run copy-prompts && npm run copy-templates",
     "copy-prompts": "mkdir -p dist/prompts && cp src/prompts/*.toml src/prompts/*.md dist/prompts/ && mkdir -p dist/prompts/agent && cp src/prompts/agent/*.md dist/prompts/agent/ && mkdir -p dist/prompts/commands && cp src/prompts/commands/*.md dist/prompts/commands/ && mkdir -p dist/prompts/strategies && cp src/prompts/strategies/*.md dist/prompts/strategies/",
@@ -47,7 +48,8 @@
     "@semantic-release/release-notes-generator": "^14.0.0",
     "@types/node": "^20.0.0",
     "semantic-release": "^24.2.1",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.16"
   },
   "release": {
     "branches": [

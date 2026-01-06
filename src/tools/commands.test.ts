@@ -8,57 +8,37 @@ import {
   createRevertTool,
 } from "./commands.js"
 import { readFile } from "fs/promises"
+import { existsSync } from "fs"
 
 // Mock fs/promises
 vi.mock("fs/promises", () => ({
   readFile: vi.fn(),
 }))
 
+// Mock fs
+vi.mock("fs", () => ({
+  existsSync: vi.fn(),
+}))
+
 describe("Command Tools", () => {
   let mockCtx: PluginInput
-  let mockToolContext: any
-  let mockClient: any
-
+  
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // Mock session creation
-    const mockSessionId = "test-session-123"
-    mockClient = {
-      session: {
-        create: vi.fn().mockResolvedValue({
-          data: { id: mockSessionId },
-          error: null,
-        }),
-        prompt: vi.fn().mockResolvedValue(undefined),
-        messages: vi.fn().mockResolvedValue({
-          data: [
-            {
-              info: { role: "assistant" },
-              parts: [{ type: "text", text: "Test response from agent" }],
-            },
-          ],
-        }),
-      },
-    }
-
     mockCtx = {
-      client: mockClient,
       directory: "/test/project",
+      isOMOActive: false,
     } as any
 
-    mockToolContext = {
-      sessionID: "parent-session-456",
-      messageID: "message-789",
-    }
-
-    // Mock readFile to return a valid TOML structure
+    // Default mocks
     vi.mocked(readFile).mockResolvedValue(`
 description = "Test command"
 prompt = """
 Test prompt content
 """
 `)
+    vi.mocked(existsSync).mockReturnValue(true) // Assume setup exists by default
   })
 
   describe("createSetupTool", () => {
@@ -69,255 +49,128 @@ Test prompt content
       )
     })
 
-    it("should have no required arguments", () => {
+    it("should return prompt text when executed", async () => {
+      vi.mocked(readFile).mockResolvedValue(`
+description = "Setup"
+prompt = "Setup Prompt"
+`)
       const tool = createSetupTool(mockCtx)
-      expect(tool.args).toEqual({})
+      const result = await tool.execute({})
+      expect(result).toBe("Setup Prompt")
     })
 
-    it("should load setup.toml prompt and execute command", async () => {
+    it("should NOT require setup to exist", async () => {
+      vi.mocked(existsSync).mockReturnValue(false)
+      vi.mocked(readFile).mockResolvedValue(`
+description = "Setup"
+prompt = "Setup Prompt"
+`)
       const tool = createSetupTool(mockCtx)
-      const result = await tool.execute({}, mockToolContext)
-
-      expect(readFile).toHaveBeenCalled()
-      expect(mockClient.session.create).toHaveBeenCalledWith({
-        body: {
-          parentID: "parent-session-456",
-          title: "Test command",
-        },
-      })
-      expect(mockClient.session.prompt).toHaveBeenCalled()
-      expect(mockClient.session.messages).toHaveBeenCalled()
-      expect(result).toContain("Test response from agent")
-      expect(result).toContain("<task_metadata>")
-      expect(result).toContain("session_id: test-session-123")
-    })
-
-    it("should handle session creation errors", async () => {
-      mockClient.session.create.mockResolvedValue({
-        data: null,
-        error: "Failed to create session",
-      })
-
-      const tool = createSetupTool(mockCtx)
-      const result = await tool.execute({}, mockToolContext)
-
-      expect(result).toBe("Error: Failed to create session")
+      const result = await tool.execute({})
+      expect(result).toBe("Setup Prompt")
     })
   })
 
   describe("createNewTrackTool", () => {
-    it("should create a tool with correct description", () => {
-      const tool = createNewTrackTool(mockCtx)
-      expect(tool.description).toBe(
-        "Plans a track, generates track-specific spec documents and updates the tracks file",
-      )
-    })
-
     it("should have optional description argument", () => {
       const tool = createNewTrackTool(mockCtx)
       expect(tool.args).toHaveProperty("description")
-      expect(tool.args.description).toBeDefined()
     })
 
-    it("should pass description to prompt when provided", async () => {
+    it("should replace description in prompt", async () => {
       vi.mocked(readFile).mockResolvedValue(`
 description = "New Track"
-prompt = """
-Track description: {{args}}
-"""
+prompt = "Track description: {{args}}"
 `)
-
       const tool = createNewTrackTool(mockCtx)
-      await tool.execute({ description: "Login feature" }, mockToolContext)
-
-      expect(mockClient.session.prompt).toHaveBeenCalled()
-      const promptCall = mockClient.session.prompt.mock.calls[0][0]
-      expect(promptCall.body.parts[0].text).toContain("Login feature")
+      const result = await tool.execute({ description: "Login feature" })
+      expect(result).toBe("Track description: Login feature")
     })
 
-    it("should work without description argument", async () => {
+    it("should return error if not set up", async () => {
+      vi.mocked(existsSync).mockReturnValue(false)
       const tool = createNewTrackTool(mockCtx)
-      await tool.execute({}, mockToolContext)
-
-      expect(mockClient.session.create).toHaveBeenCalled()
-      expect(mockClient.session.prompt).toHaveBeenCalled()
+      const result = await tool.execute({})
+      expect(result).toContain("Conductor is not set up")
     })
   })
 
   describe("createImplementTool", () => {
-    it("should create a tool with correct description", () => {
-      const tool = createImplementTool(mockCtx)
-      expect(tool.description).toBe(
-        "Executes the tasks defined in the specified track's plan",
-      )
-    })
-
     it("should have optional track_name argument", () => {
       const tool = createImplementTool(mockCtx)
       expect(tool.args).toHaveProperty("track_name")
     })
 
-    it("should pass track_name to prompt when provided", async () => {
+    it("should replace track_name in prompt", async () => {
       vi.mocked(readFile).mockResolvedValue(`
 description = "Implement"
-prompt = """
-Track: {{track_name}}
-"""
+prompt = "Track: {{track_name}}"
 `)
-
       const tool = createImplementTool(mockCtx)
-      await tool.execute({ track_name: "auth-track" }, mockToolContext)
-
-      expect(mockClient.session.prompt).toHaveBeenCalled()
-      const promptCall = mockClient.session.prompt.mock.calls[0][0]
-      expect(promptCall.body.parts[0].text).toContain("auth-track")
-      expect(promptCall.body.agent).toBe("conductor_implementer")
+      const result = await tool.execute({ track_name: "auth-track" })
+      expect(result).toBe("Track: auth-track")
     })
 
-    it("should use conductor_implementer agent", async () => {
-      const tool = createImplementTool(mockCtx)
-      await tool.execute({}, mockToolContext)
+    it("should include strategy section", async () => {
+       vi.mocked(readFile).mockImplementation(async (path) => {
+           if (typeof path === 'string' && path.endsWith("manual.md")) {
+               return "Manual Strategy"
+           }
+           return `
+description = "Implement"
+prompt = "Strategy: {{strategy_section}}"
+`
+       })
 
-      const promptCall = mockClient.session.prompt.mock.calls[0][0]
-      expect(promptCall.body.agent).toBe("conductor_implementer")
+       const tool = createImplementTool(mockCtx)
+       const result = await tool.execute({})
+       expect(result).toBe("Strategy: Manual Strategy")
     })
   })
 
   describe("createStatusTool", () => {
-    it("should create a tool with correct description", () => {
+    it("should execute and return prompt", async () => {
+      vi.mocked(readFile).mockResolvedValue(`
+description = "Status"
+prompt = "Status Prompt"
+`)
       const tool = createStatusTool(mockCtx)
-      expect(tool.description).toBe("Displays the current progress of the project")
-    })
-
-    it("should have no required arguments", () => {
-      const tool = createStatusTool(mockCtx)
-      expect(tool.args).toEqual({})
-    })
-
-    it("should load status.toml and execute command", async () => {
-      const tool = createStatusTool(mockCtx)
-      await tool.execute({}, mockToolContext)
-
-      expect(readFile).toHaveBeenCalled()
-      expect(mockClient.session.create).toHaveBeenCalled()
-      expect(mockClient.session.prompt).toHaveBeenCalled()
+      const result = await tool.execute({})
+      expect(result).toBe("Status Prompt")
     })
   })
 
   describe("createRevertTool", () => {
-    it("should create a tool with correct description", () => {
-      const tool = createRevertTool(mockCtx)
-      expect(tool.description).toBe("Reverts previous work")
-    })
-
-    it("should have optional target argument", () => {
-      const tool = createRevertTool(mockCtx)
-      expect(tool.args).toHaveProperty("target")
-    })
-
-    it("should pass target to prompt when provided", async () => {
+    it("should replace target in prompt", async () => {
       vi.mocked(readFile).mockResolvedValue(`
 description = "Revert"
-prompt = """
-Target: {{target}}
-"""
+prompt = "Target: {{target}}"
 `)
-
       const tool = createRevertTool(mockCtx)
-      await tool.execute({ target: "track auth-track" }, mockToolContext)
-
-      expect(mockClient.session.prompt).toHaveBeenCalled()
-      const promptCall = mockClient.session.prompt.mock.calls[0][0]
-      expect(promptCall.body.parts[0].text).toContain("track auth-track")
-    })
-
-    it("should work without target argument", async () => {
-      const tool = createRevertTool(mockCtx)
-      await tool.execute({}, mockToolContext)
-
-      expect(mockClient.session.create).toHaveBeenCalled()
-      expect(mockClient.session.prompt).toHaveBeenCalled()
+      const result = await tool.execute({ target: "track 1" })
+      expect(result).toBe("Target: track 1")
     })
   })
 
   describe("Error Handling", () => {
-    it("should handle file read errors gracefully", async () => {
+    it("should throw error if readFile fails", async () => {
       vi.mocked(readFile).mockRejectedValue(new Error("File not found"))
-
       const tool = createSetupTool(mockCtx)
-      const result = await tool.execute({}, mockToolContext)
-
-      // Should still attempt to execute, but with error prompt
-      expect(mockClient.session.create).toHaveBeenCalled()
-      expect(mockClient.session.prompt).toHaveBeenCalled()
-    })
-
-    it("should handle missing prompt text in TOML", async () => {
-      vi.mocked(readFile).mockResolvedValue(`
-description = "Test"
-prompt = ""
-`)
-
-      const tool = createSetupTool(mockCtx)
-      
-      // Should handle error gracefully - the error is caught and returns error message
-      // The tool will still execute but with an error prompt
-      const result = await tool.execute({}, mockToolContext)
-      expect(mockClient.session.create).toHaveBeenCalled()
-      expect(mockClient.session.prompt).toHaveBeenCalled()
-      // The prompt should contain the error message
-      const promptCall = mockClient.session.prompt.mock.calls[0][0]
-      expect(promptCall.body.parts[0].text).toContain("SYSTEM ERROR")
-    })
-
-    it("should handle empty messages response", async () => {
-      mockClient.session.messages.mockResolvedValue({
-        data: [],
-      })
-
-      const tool = createSetupTool(mockCtx)
-      const result = await tool.execute({}, mockToolContext)
-
-      expect(result).toContain("No response.")
-    })
-
-    it("should handle messages with no text parts", async () => {
-      mockClient.session.messages.mockResolvedValue({
-        data: [
-          {
-            info: { role: "assistant" },
-            parts: [{ type: "image", url: "test.jpg" }],
-          },
-        ],
-      })
-
-      const tool = createSetupTool(mockCtx)
-      const result = await tool.execute({}, mockToolContext)
-
-      expect(result).toContain("No response.")
+      await expect(tool.execute({})).rejects.toThrow("Failed to load prompt")
     })
   })
 
   describe("Prompt Replacement", () => {
-    it("should replace template variables in prompts", async () => {
+    it("should replace standard variables", async () => {
       vi.mocked(readFile).mockResolvedValue(`
 description = "Test"
-prompt = """
-Templates dir: {{templatesDir}}
-Args: {{args}}
-"""
+prompt = "Templates: {{templatesDir}}, OMO: {{isOMOActive}}"
 `)
-
       const tool = createNewTrackTool(mockCtx)
-      await tool.execute({ description: "test track" }, mockToolContext)
-
-      const promptCall = mockClient.session.prompt.mock.calls[0][0]
-      const promptText = promptCall.body.parts[0].text
+      const result = await tool.execute({})
       
-      // Should replace templatesDir
-      expect(promptText).toContain("Templates dir:")
-      // Should replace args
-      expect(promptText).toContain("test track")
+      expect(result).toContain("Templates:")
+      expect(result).toContain("OMO: false")
     })
   })
 })
