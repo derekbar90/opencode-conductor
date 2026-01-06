@@ -32,6 +32,9 @@
     "build": "tsc && npm run copy-prompts && npm run copy-templates",
     "copy-prompts": "mkdir -p dist/prompts && cp src/prompts/*.toml src/prompts/*.md dist/prompts/ && mkdir -p dist/prompts/agent && cp src/prompts/agent/*.md dist/prompts/agent/ && mkdir -p dist/prompts/strategies && cp src/prompts/strategies/*.md dist/prompts/strategies/",
     "copy-templates": "mkdir -p dist/templates && cp -r src/templates/* dist/templates/",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -46,8 +49,10 @@
     "@semantic-release/npm": "^12.0.1",
     "@semantic-release/release-notes-generator": "^14.0.0",
     "@types/node": "^20.0.0",
+    "@vitest/ui": "^2.0.0",
     "semantic-release": "^24.2.1",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0"
   },
   "release": {
     "branches": [
