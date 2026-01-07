@@ -30,9 +30,9 @@
   "scripts": {
     "test": "vitest run",
     "postinstall": "node scripts/postinstall.cjs",
-    "build": "tsc && npm run copy-prompts && npm run copy-templates",
-    "copy-prompts": "mkdir -p dist/prompts && cp src/prompts/*.md dist/prompts/ && cp legacy/conductor/commands/conductor/*.toml dist/prompts/ && mkdir -p dist/prompts/agent && cp src/prompts/agent/*.md dist/prompts/agent/ && mkdir -p dist/prompts/strategies && cp src/prompts/strategies/*.md dist/prompts/strategies/",
-    "copy-templates": "mkdir -p dist/templates && cp -r src/templates/* dist/templates/",
+    "build": "rm -rf dist && npm run convert-legacy && tsc && npm run copy-assets",
+    "convert-legacy": "node scripts/convert-legacy.cjs",
+    "copy-assets": "mkdir -p dist/templates && cp -r src/templates/* dist/templates/ && mkdir -p dist/prompts && cp -r src/prompts/* dist/prompts/",
     "update-submodule": "git submodule update --init --recursive --remote",
     "prepublishOnly": "npm run update-submodule && npm run build"
   },
