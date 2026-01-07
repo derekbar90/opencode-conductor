@@ -1,3 +1,10 @@
+# [1.29.0](https://github.com/derekbar90/opencode-conductor/compare/v1.28.0...v1.29.0) (2026-01-07)
+
+
+### Features
+
+* update build process and plugin structure ([5190aca](https://github.com/derekbar90/opencode-conductor/commit/5190aca2a9191abf6741f992374ff229904aeea5))
+
 # [1.28.0](https://github.com/derekbar90/opencode-conductor/compare/v1.27.0...v1.28.0) (2026-01-07)
 
 
