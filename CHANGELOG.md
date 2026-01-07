@@ -1,3 +1,10 @@
+## [1.30.1](https://github.com/derekbar90/opencode-conductor/compare/v1.30.0...v1.30.1) (2026-01-07)
+
+
+### Bug Fixes
+
+* update file tag format and enhance environment details in status prompt ([13261fe](https://github.com/derekbar90/opencode-conductor/commit/13261fe96b848c381baf4477b3f2fe8d1c1930b3))
+
 # [1.30.0](https://github.com/derekbar90/opencode-conductor/compare/v1.29.0...v1.30.0) (2026-01-07)
 
 
