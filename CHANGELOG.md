@@ -1,3 +1,10 @@
+# [1.30.0](https://github.com/derekbar90/opencode-conductor/compare/v1.29.0...v1.30.0) (2026-01-07)
+
+
+### Features
+
+* enhance conductor commands with environment context and setup check ([4bbfde3](https://github.com/derekbar90/opencode-conductor/commit/4bbfde333c385861ae265c509645b31d3eb15a57))
+
 # [1.29.0](https://github.com/derekbar90/opencode-conductor/compare/v1.28.0...v1.29.0) (2026-01-07)
 
 
