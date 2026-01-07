@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/derekbar90/opencode-conductor/compare/v1.27.0...v1.28.0) (2026-01-07)
+
+
+### Features
+
+* add implement command for feature implementation and bug fixing ([46f201d](https://github.com/derekbar90/opencode-conductor/commit/46f201dc46ab695ce18fdd8d5240f9b342c5c059))
+
 # [1.27.0](https://github.com/derekbar90/opencode-conductor/compare/v1.26.1...v1.27.0) (2026-01-06)
 
 
