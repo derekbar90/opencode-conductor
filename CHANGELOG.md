@@ -1,3 +1,10 @@
+## [1.30.2](https://github.com/derekbar90/opencode-conductor/compare/v1.30.1...v1.30.2) (2026-01-09)
+
+
+### Bug Fixes
+
+* enhance environment details in status prompt with critical override notice ([8f032f5](https://github.com/derekbar90/opencode-conductor/commit/8f032f5d6622552163eb5369379614c44a28ed1e))
+
 ## [1.30.1](https://github.com/derekbar90/opencode-conductor/compare/v1.30.0...v1.30.1) (2026-01-07)
 
 
