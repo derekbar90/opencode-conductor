@@ -46,3 +46,18 @@ export function loadTrackMetadata(
   const content = readFileSync(metadataPath, "utf-8")
   return JSON.parse(content) as TrackMetadata
 }
+
+export function updateTrackWorktreeInfo(
+  projectRoot: string,
+  trackId: string,
+  worktreePath: string,
+  worktreeBranch: string
+): void {
+  const metadata = loadTrackMetadata(projectRoot, trackId)
+  
+  metadata.worktree_path = worktreePath
+  metadata.worktree_branch = worktreeBranch
+  metadata.updated_at = new Date().toISOString()
+  
+  saveTrackMetadata(projectRoot, trackId, metadata)
+}

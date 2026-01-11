@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync } from "fs"
 import { join } from "path"
-import { loadTrackMetadata, saveTrackMetadata, type TrackMetadata } from "./metadataManager.js"
+import { loadTrackMetadata, saveTrackMetadata, updateTrackWorktreeInfo, type TrackMetadata } from "./metadataManager.js"
 
 vi.mock("fs", () => ({
   readFileSync: vi.fn(),
@@ -153,7 +153,112 @@ describe("metadataManager", () => {
 
       expect(() => {
         loadTrackMetadata("/test/project", "feature_20260111")
-      }).toThrow()
+      }      ).toThrow()
+    })
+  })
+
+  describe("updateTrackWorktreeInfo", () => {
+    it("should update existing metadata with worktree_path when worktree is used", () => {
+      const existingMetadata = {
+        track_id: "feature_20260111",
+        type: "feature" as const,
+        status: "new" as const,
+        created_at: "2026-01-11T00:00:00Z",
+        updated_at: "2026-01-11T00:00:00Z",
+        description: "Test feature",
+      }
+
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(existingMetadata))
+
+      updateTrackWorktreeInfo(
+        "/test/project",
+        "feature_20260111",
+        "/test/project-worktrees/feature_20260111",
+        "conductor/feature_20260111"
+      )
+
+      expect(writeFileSync).toHaveBeenCalled()
+      const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
+      expect(writtenData.worktree_path).toBe("/test/project-worktrees/feature_20260111")
+      expect(writtenData.worktree_branch).toBe("conductor/feature_20260111")
+    })
+
+    it("should update existing metadata with worktree_branch", () => {
+      const existingMetadata = {
+        track_id: "feature_20260111",
+        type: "feature" as const,
+        status: "new" as const,
+        created_at: "2026-01-11T00:00:00Z",
+        updated_at: "2026-01-11T00:00:00Z",
+        description: "Test feature",
+      }
+
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(existingMetadata))
+
+      updateTrackWorktreeInfo(
+        "/test/project",
+        "feature_20260111",
+        "/test/project-worktrees/feature_20260111",
+        "conductor/feature_20260111"
+      )
+
+      const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
+      expect(writtenData.worktree_branch).toBe("conductor/feature_20260111")
+    })
+
+    it("should preserve other metadata fields when updating worktree info", () => {
+      const existingMetadata = {
+        track_id: "feature_20260111",
+        type: "feature" as const,
+        status: "in_progress" as const,
+        created_at: "2026-01-11T00:00:00Z",
+        updated_at: "2026-01-11T00:00:00Z",
+        description: "Test feature with existing data",
+      }
+
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(existingMetadata))
+
+      updateTrackWorktreeInfo(
+        "/test/project",
+        "feature_20260111",
+        "/test/project-worktrees/feature_20260111",
+        "conductor/feature_20260111"
+      )
+
+      const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
+      expect(writtenData.track_id).toBe("feature_20260111")
+      expect(writtenData.type).toBe("feature")
+      expect(writtenData.status).toBe("in_progress")
+      expect(writtenData.description).toBe("Test feature with existing data")
+    })
+
+    it("should update the updated_at timestamp", () => {
+      const existingMetadata = {
+        track_id: "feature_20260111",
+        type: "feature" as const,
+        status: "new" as const,
+        created_at: "2026-01-11T00:00:00Z",
+        updated_at: "2026-01-11T00:00:00Z",
+        description: "Test feature",
+      }
+
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(existingMetadata))
+
+      updateTrackWorktreeInfo(
+        "/test/project",
+        "feature_20260111",
+        "/test/project-worktrees/feature_20260111",
+        "conductor/feature_20260111"
+      )
+
+      const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
+      expect(writtenData.updated_at).not.toBe("2026-01-11T00:00:00Z")
+      expect(new Date(writtenData.updated_at).getTime()).toBeGreaterThan(0)
     })
   })
 })
+
