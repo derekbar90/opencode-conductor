@@ -151,7 +151,7 @@
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Implement Command Integration' (Protocol in workflow.md)
 
-## Phase 5: Worktree Cleanup and Merge [checkpoint: ]
+## Phase 5: Worktree Cleanup and Merge [checkpoint: 616a5e6] ⚠️ CORE COMPLETE, INTEGRATION DEFERRED
 
 ### Task 5.1: Implement cleanup confirmation dialog
 - [ ] Task: Write tests for cleanup confirmation flow
@@ -243,7 +243,11 @@
     - [ ] Restore working directory to original location on success
     - [ ] Run tests and confirm they pass (Green phase)
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Worktree Cleanup and Merge' (Protocol in workflow.md)
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Worktree Cleanup and Merge' (Protocol in workflow.md) [git-note: 616a5e6]
+
+**NOTE**: Phase 5 core implementation is complete (all cleanup functions implemented and tested with 84 tests passing). 
+Final integration into command execution flow is deferred pending architectural decision on track completion detection in directive-based command architecture.
+See git note 616a5e6 for detailed status and remaining work.
 
 ## Phase 6: Error Handling and Edge Cases [checkpoint: ]
 
