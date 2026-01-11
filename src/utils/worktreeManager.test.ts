@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { getWorktreePath, sanitizeProjectName, createWorktree, getCurrentBranch } from "./worktreeManager.js"
+import { getWorktreePath, sanitizeProjectName, createWorktree, getCurrentBranch, worktreeExists } from "./worktreeManager.js"
 import { join, resolve, dirname } from "path"
 import { exec } from "child_process"
 import { promisify } from "util"
@@ -217,6 +217,71 @@ describe("worktreeManager", () => {
         expect.objectContaining({ cwd: "/test/project" }),
         expect.any(Function)
       )
+    })
+  })
+
+  describe("worktreeExists", () => {
+    it("should return true when worktree directory exists", async () => {
+      vi.mocked(exec).mockImplementation((cmd: any, options: any, callback: any) => {
+        // Mock git worktree list output
+        const worktreeList = "/test/project-worktrees/feature_20260111  abc123 [conductor/feature_20260111]"
+        callback(null, { stdout: worktreeList, stderr: "" })
+        return {} as any
+      })
+
+      const exists = await worktreeExists("/test/project", "feature_20260111")
+      
+      expect(exists).toBe(true)
+      expect(exec).toHaveBeenCalledWith(
+        "git worktree list --porcelain",
+        expect.objectContaining({ cwd: "/test/project" }),
+        expect.any(Function)
+      )
+    })
+
+    it("should return false when worktree doesn't exist", async () => {
+      vi.mocked(exec).mockImplementation((cmd: any, options: any, callback: any) => {
+        // Mock empty worktree list
+        callback(null, { stdout: "", stderr: "" })
+        return {} as any
+      })
+
+      const exists = await worktreeExists("/test/project", "nonexistent_track")
+      
+      expect(exists).toBe(false)
+    })
+
+    it("should handle git worktree list errors gracefully", async () => {
+      vi.mocked(exec).mockImplementation((cmd: any, options: any, callback: any) => {
+        callback(new Error("Not a git repository"), null)
+        return {} as any
+      })
+
+      await expect(worktreeExists("/test/project", "feature_20260111")).rejects.toThrow("Not a git repository")
+    })
+
+    it("should check worktree path in git output", async () => {
+      vi.mocked(exec).mockImplementation((cmd: any, options: any, callback: any) => {
+        const worktreeList = `
+worktree /test/project
+HEAD abc123
+branch refs/heads/main
+
+worktree /test/project-worktrees/feature_20260111
+HEAD def456
+branch refs/heads/conductor/feature_20260111
+
+worktree /test/project-worktrees/other_track
+HEAD ghi789
+branch refs/heads/conductor/other_track
+`
+        callback(null, { stdout: worktreeList, stderr: "" })
+        return {} as any
+      })
+
+      const exists = await worktreeExists("/test/project", "feature_20260111")
+      
+      expect(exists).toBe(true)
     })
   })
 })

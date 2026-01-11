@@ -66,3 +66,20 @@ export async function createWorktree(
   return worktreePath
 }
 
+export async function worktreeExists(
+  projectRoot: string,
+  trackId: string
+): Promise<boolean> {
+  const worktreePath = getWorktreePath(projectRoot, trackId)
+  
+  try {
+    const { stdout } = await execAsync("git worktree list --porcelain", {
+      cwd: projectRoot,
+    })
+    
+    return stdout.includes(worktreePath)
+  } catch (error) {
+    throw error
+  }
+}
+
