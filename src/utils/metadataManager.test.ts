@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
-import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync } from "fs"
-import { join } from "path"
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs"
 import { loadTrackMetadata, saveTrackMetadata, updateTrackWorktreeInfo, clearTrackWorktreeInfo, type TrackMetadata } from "./metadataManager.js"
 
 vi.mock("fs", () => ({

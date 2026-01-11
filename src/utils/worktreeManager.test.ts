@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { getWorktreePath, sanitizeProjectName, createWorktree, getCurrentBranch, worktreeExists, validateTrackId } from "./worktreeManager.js"
-import { join, resolve, dirname } from "path"
+import { dirname } from "path"
 import { exec } from "child_process"
 import { existsSync } from "fs"
 import { promisify } from "util"
@@ -26,8 +26,6 @@ vi.mock("util", () => ({
     }
   }),
 }))
-
-const execAsync = promisify(exec)
 
 describe("worktreeManager", () => {
   beforeEach(() => {
