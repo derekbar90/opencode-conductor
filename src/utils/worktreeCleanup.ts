@@ -9,6 +9,20 @@ import {
 
 const execAsync = promisify(exec)
 
+export async function getConflictedFiles(
+  projectRoot: string
+): Promise<string[]> {
+  const { stdout } = await execAsync(
+    "git diff --name-only --diff-filter=U",
+    { cwd: projectRoot }
+  )
+
+  return stdout
+    .trim()
+    .split("\n")
+    .filter((line) => line.length > 0)
+}
+
 export interface CleanupResult {
   success: boolean
   merged: boolean
@@ -99,8 +113,9 @@ export async function cleanupWorktree(
 
     const merged = await mergeWorktreeBranch(projectRoot, trackId, targetBranch)
     if (!merged) {
-      result.error =
-        "Merge conflicts detected. Please resolve conflicts manually."
+      const conflictedFiles = await getConflictedFiles(projectRoot)
+      const fileList = conflictedFiles.map((f) => `  - ${f}`).join("\n")
+      result.error = `Merge conflicts detected in the following files:\n${fileList}\n\nTo resolve:\n1. Fix conflicts in the files above\n2. Run: git add <resolved-files>\n3. Run: git commit\n4. Retry cleanup after resolution`
       return result
     }
     result.merged = true

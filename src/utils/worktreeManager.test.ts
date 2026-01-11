@@ -2,10 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { getWorktreePath, sanitizeProjectName, createWorktree, getCurrentBranch, worktreeExists } from "./worktreeManager.js"
 import { join, resolve, dirname } from "path"
 import { exec } from "child_process"
+import { existsSync } from "fs"
 import { promisify } from "util"
 
 vi.mock("child_process", () => ({
   exec: vi.fn(),
+}))
+
+vi.mock("fs", () => ({
+  existsSync: vi.fn(),
+  rmSync: vi.fn(),
 }))
 
 vi.mock("util", () => ({
@@ -202,6 +208,77 @@ describe("worktreeManager", () => {
       await expect(
         createWorktree("/test/project", "feature_20260111", "main")
       ).rejects.toThrow("already exists")
+    })
+
+    it("should remove stale worktree directory and retry creation", async () => {
+      const { rmSync } = await import("fs")
+      
+      vi.mocked(existsSync).mockReturnValueOnce(true).mockReturnValueOnce(true)
+      
+      let callCount = 0
+      vi.mocked(exec).mockImplementation((cmd: any, options: any, callback: any) => {
+        if (cmd.includes("git worktree list --porcelain")) {
+          callback(null, { stdout: "", stderr: "" })
+        } else if (cmd.includes("git worktree prune")) {
+          callback(null, { stdout: "", stderr: "" })
+        } else if (cmd.includes("git worktree add")) {
+          callback(null, { stdout: "", stderr: "" })
+        }
+        return {} as any
+      })
+
+      const worktreePath = await createWorktree(
+        "/test/project",
+        "feature_20260111",
+        "main"
+      )
+
+      expect(rmSync).toHaveBeenCalledWith(
+        expect.stringContaining("feature_20260111"),
+        { recursive: true, force: true }
+      )
+      expect(worktreePath).toContain("feature_20260111")
+    })
+
+    it("should handle stale directory removal failure gracefully", async () => {
+      const { rmSync } = await import("fs")
+      
+      vi.mocked(existsSync).mockReturnValue(true)
+      
+      vi.mocked(exec).mockImplementation((cmd: any, options: any, callback: any) => {
+        if (cmd.includes("git worktree list --porcelain")) {
+          callback(null, { stdout: "", stderr: "" })
+        } else if (cmd.includes("git worktree prune")) {
+          callback(new Error("Prune failed"), null)
+        } else if (cmd.includes("git worktree add")) {
+          callback(null, { stdout: "", stderr: "" })
+        }
+        return {} as any
+      })
+
+      const worktreePath = await createWorktree(
+        "/test/project",
+        "feature_20260111",
+        "main"
+      )
+
+      expect(rmSync).toHaveBeenCalled()
+      expect(worktreePath).toContain("feature_20260111")
+    })
+
+    it("should throw error if worktree exists and is registered in Git", async () => {
+      vi.mocked(existsSync).mockReturnValue(true)
+      
+      vi.mocked(exec).mockImplementation((cmd: any, options: any, callback: any) => {
+        if (cmd.includes("git worktree list --porcelain")) {
+          callback(null, { stdout: "/test/project-worktrees/feature_20260111\n", stderr: "" })
+        }
+        return {} as any
+      })
+
+      await expect(
+        createWorktree("/test/project", "feature_20260111", "main")
+      ).rejects.toThrow("Worktree already exists")
     })
 
     it("should pass project root as working directory", async () => {

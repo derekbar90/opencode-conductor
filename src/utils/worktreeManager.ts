@@ -1,6 +1,7 @@
 import { basename, dirname, join } from "path"
 import { exec } from "child_process"
 import { promisify } from "util"
+import { existsSync, rmSync } from "fs"
 
 const execAsync = promisify(exec)
 
@@ -58,6 +59,24 @@ export async function createWorktree(
 ): Promise<string> {
   const worktreePath = getWorktreePath(projectRoot, trackId)
   const branchName = `conductor/${trackId}`
+  
+  if (existsSync(worktreePath)) {
+    const isGitWorktree = await worktreeExists(projectRoot, trackId)
+    
+    if (!isGitWorktree) {
+      try {
+        await execAsync("git worktree prune", { cwd: projectRoot })
+      } catch (error) {
+        // Prune failed, continue to force removal
+      }
+      
+      if (existsSync(worktreePath)) {
+        rmSync(worktreePath, { recursive: true, force: true })
+      }
+    } else {
+      throw new Error(`Worktree already exists at ${worktreePath}. Use a different track name or remove the existing worktree.`)
+    }
+  }
   
   const command = `git worktree add "${worktreePath}" -b ${branchName} ${baseBranch}`
   

@@ -7,6 +7,7 @@ import {
   removeWorktree,
   deleteWorktreeBranch,
   cleanupWorktree,
+  getConflictedFiles,
   type CleanupResult,
 } from "./worktreeCleanup.js"
 import * as metadataManager from "./metadataManager.js"
@@ -298,6 +299,8 @@ describe("worktreeCleanup", () => {
           callback(null, { stdout: "Success", stderr: "" })
         } else if (cmd.includes("merge")) {
           callback(new Error("CONFLICT: merge conflict"), { stdout: "", stderr: "" })
+        } else if (cmd.includes("git diff --name-only --diff-filter=U")) {
+          callback(null, { stdout: "src/file1.ts\nsrc/file2.ts\n", stderr: "" })
         }
         return {} as any
       })
@@ -309,6 +312,9 @@ describe("worktreeCleanup", () => {
       expect(result.worktreeRemoved).toBe(false)
       expect(result.branchDeleted).toBe(false)
       expect(result.error).toContain("Merge conflicts detected")
+      expect(result.error).toContain("src/file1.ts")
+      expect(result.error).toContain("src/file2.ts")
+      expect(result.error).toContain("To resolve:")
       expect(metadataManager.clearTrackWorktreeInfo).not.toHaveBeenCalled()
     })
 
@@ -396,6 +402,41 @@ describe("worktreeCleanup", () => {
       const result = await cleanupWorktree("/test/project", "feature_123", "main")
 
       expect(result.originalProjectRoot).toBe(originalRoot)
+    })
+  })
+
+  describe("getConflictedFiles", () => {
+    it("should return list of files with merge conflicts", async () => {
+      vi.mocked(exec).mockImplementation((cmd: string, options: any, callback: any) => {
+        if (cmd.includes("git diff --name-only --diff-filter=U")) {
+          callback(null, { stdout: "src/file1.ts\nsrc/file2.ts\nREADME.md\n", stderr: "" })
+        }
+        return {} as any
+      })
+
+      const files = await getConflictedFiles("/test/project")
+
+      expect(files).toEqual(["src/file1.ts", "src/file2.ts", "README.md"])
+    })
+
+    it("should return empty array when no conflicts exist", async () => {
+      vi.mocked(exec).mockImplementation((cmd: string, options: any, callback: any) => {
+        callback(null, { stdout: "", stderr: "" })
+        return {} as any
+      })
+
+      const files = await getConflictedFiles("/test/project")
+
+      expect(files).toEqual([])
+    })
+
+    it("should handle errors gracefully", async () => {
+      vi.mocked(exec).mockImplementation((cmd: string, options: any, callback: any) => {
+        callback(new Error("Git command failed"), { stdout: "", stderr: "" })
+        return {} as any
+      })
+
+      await expect(getConflictedFiles("/test/project")).rejects.toThrow("Git command failed")
     })
   })
 })
