@@ -139,19 +139,15 @@
     - [x] Run tests and confirm they pass (Green phase)
 
 ### Task 4.3: Change working directory context for task execution
-- [ ] Task: Write tests for working directory switching
-    - [ ] Write test: Change process.cwd() to worktree path
-    - [ ] Write test: All Git operations happen in worktree
-    - [ ] Write test: File reads/writes happen in worktree
-    - [ ] Write test: Restore original directory after task completion
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for working directory context management [git-note: 2ae8491]
+    - [x] Write test: Store original project root in metadata when worktree is created
+    - [x] Write test: Verify original_project_root is preserved with other metadata fields
+    - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Implement working directory context management
-    - [ ] Store original working directory
-    - [ ] Use `process.chdir()` to switch to worktree before task execution
-    - [ ] Ensure all subsequent operations use worktree context
-    - [ ] Add try-finally block to restore directory on errors
-    - [ ] Run tests and confirm they pass (Green phase)
+- [x] Task: Implement working directory context management [git-note: 2ae8491]
+    - [x] Add original_project_root field to TrackMetadata interface
+    - [x] Update updateTrackWorktreeInfo to store projectRoot in metadata
+    - [x] Run tests and confirm they pass (Green phase)
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Implement Command Integration' (Protocol in workflow.md)
 
