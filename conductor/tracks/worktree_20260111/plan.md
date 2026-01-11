@@ -45,19 +45,19 @@
     - [x] Refactor if needed
 
 ### Task 2.2: Implement worktree and branch creation
-- [ ] Task: Write tests for worktree creation operations
-    - [ ] Write test: Create worktree with correct branch name format
-    - [ ] Write test: Detect current branch before creating worktree
-    - [ ] Write test: Handle existing worktree directory error
-    - [ ] Write test: Verify worktree created in correct location
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for worktree creation operations [git-note: 037e951]
+    - [x] Write test: Create worktree with correct branch name format
+    - [x] Write test: Detect current branch before creating worktree
+    - [x] Write test: Handle existing worktree directory error
+    - [x] Write test: Verify worktree created in correct location
+    - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Implement worktree creation logic
-    - [ ] Add `createWorktree(trackId: string, baseBranch: string): Promise<string>` to worktreeManager
-    - [ ] Implement Git command: `git worktree add <path> -b conductor/<track_id> <base_branch>`
-    - [ ] Add error handling for existing directories
-    - [ ] Return absolute path to created worktree
-    - [ ] Run tests and confirm they pass (Green phase)
+- [x] Task: Implement worktree creation logic [git-note: 037e951]
+    - [x] Add `createWorktree(trackId: string, baseBranch: string): Promise<string>` to worktreeManager
+    - [x] Implement Git command: `git worktree add <path> -b conductor/<track_id> <base_branch>`
+    - [x] Add error handling for existing directories
+    - [x] Return absolute path to created worktree
+    - [x] Run tests and confirm they pass (Green phase)
 
 - [ ] Task: Write tests for worktree existence check
     - [ ] Write test: Detect when worktree directory already exists
