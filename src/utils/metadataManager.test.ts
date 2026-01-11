@@ -158,7 +158,7 @@ describe("metadataManager", () => {
   })
 
   describe("updateTrackWorktreeInfo", () => {
-    it("should update existing metadata with worktree_path when worktree is used", () => {
+    it("should update existing metadata with worktree_path", () => {
       const existingMetadata = {
         track_id: "feature_20260111",
         type: "feature" as const,
@@ -178,10 +178,8 @@ describe("metadataManager", () => {
         "conductor/feature_20260111"
       )
 
-      expect(writeFileSync).toHaveBeenCalled()
       const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
       expect(writtenData.worktree_path).toBe("/test/project-worktrees/feature_20260111")
-      expect(writtenData.worktree_branch).toBe("conductor/feature_20260111")
     })
 
     it("should update existing metadata with worktree_branch", () => {
@@ -206,6 +204,30 @@ describe("metadataManager", () => {
 
       const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
       expect(writtenData.worktree_branch).toBe("conductor/feature_20260111")
+    })
+
+    it("should store original project root when setting worktree info", () => {
+      const existingMetadata = {
+        track_id: "feature_20260111",
+        type: "feature" as const,
+        status: "new" as const,
+        created_at: "2026-01-11T00:00:00Z",
+        updated_at: "2026-01-11T00:00:00Z",
+        description: "Test feature",
+      }
+
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(existingMetadata))
+
+      updateTrackWorktreeInfo(
+        "/test/project",
+        "feature_20260111",
+        "/test/project-worktrees/feature_20260111",
+        "conductor/feature_20260111"
+      )
+
+      const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
+      expect(writtenData.original_project_root).toBe("/test/project")
     })
 
     it("should preserve other metadata fields when updating worktree info", () => {
@@ -259,6 +281,18 @@ describe("metadataManager", () => {
       expect(writtenData.updated_at).not.toBe("2026-01-11T00:00:00Z")
       expect(new Date(writtenData.updated_at).getTime()).toBeGreaterThan(0)
     })
+
+    it("should throw error if metadata file does not exist", () => {
+      vi.mocked(existsSync).mockReturnValue(false)
+
+      expect(() =>
+        updateTrackWorktreeInfo(
+          "/test/project",
+          "nonexistent",
+          "/test/path",
+          "conductor/nonexistent"
+        )
+      ).toThrow()
+    })
   })
 })
-

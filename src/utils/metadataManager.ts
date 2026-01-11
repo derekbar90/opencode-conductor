@@ -10,6 +10,7 @@ export interface TrackMetadata {
   description: string
   worktree_path?: string
   worktree_branch?: string
+  original_project_root?: string
 }
 
 export function saveTrackMetadata(
@@ -57,6 +58,7 @@ export function updateTrackWorktreeInfo(
   
   metadata.worktree_path = worktreePath
   metadata.worktree_branch = worktreeBranch
+  metadata.original_project_root = projectRoot
   metadata.updated_at = new Date().toISOString()
   
   saveTrackMetadata(projectRoot, trackId, metadata)
