@@ -171,66 +171,76 @@
     - [ ] Run tests and confirm they pass (Green phase)
 
 ### Task 5.2: Implement branch merge logic
-- [ ] Task: Write tests for merge operations
-    - [ ] Write test: Merge conductor/<track_id> to target branch
-    - [ ] Write test: Detect merge conflicts and pause
-    - [ ] Write test: Verify merge successful before cleanup
-    - [ ] Write test: Handle fast-forward vs regular merge
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for merge operations [git-note: bdbbd5d]
+    - [x] Write test: Merge conductor/<track_id> to target branch
+    - [x] Write test: Detect merge conflicts and pause
+    - [x] Write test: Verify merge successful before cleanup
+    - [x] Write test: Handle fast-forward vs regular merge
+    - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Implement merge functionality
-    - [ ] Create `mergeWorktreeBranch(trackId: string, targetBranch: string): Promise<boolean>`
-    - [ ] Checkout target branch
-    - [ ] Execute `git merge conductor/<track_id>`
-    - [ ] Detect conflicts and throw descriptive error
-    - [ ] Return success status
-    - [ ] Run tests and confirm they pass (Green phase)
+- [x] Task: Implement merge functionality [git-note: bdbbd5d]
+    - [x] Create `mergeWorktreeBranch(trackId: string, targetBranch: string): Promise<boolean>`
+    - [x] Checkout target branch
+    - [x] Execute `git merge conductor/<track_id>`
+    - [x] Detect conflicts and throw descriptive error
+    - [x] Return success status
+    - [x] Run tests and confirm they pass (Green phase)
 
 ### Task 5.3: Implement worktree removal with verification
-- [ ] Task: Write tests for worktree removal
-    - [ ] Write test: Remove worktree with git worktree remove
-    - [ ] Write test: Verify directory no longer exists
-    - [ ] Write test: Forcefully delete remnants if directory remains
-    - [ ] Write test: Handle locked worktrees
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for worktree removal [git-note: bdbbd5d]
+    - [x] Write test: Remove worktree with git worktree remove
+    - [x] Write test: Verify directory no longer exists
+    - [x] Write test: Forcefully delete remnants if directory remains
+    - [x] Write test: Handle locked worktrees
+    - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Implement worktree removal logic
-    - [ ] Create `removeWorktree(trackId: string): Promise<void>`
-    - [ ] Execute `git worktree remove <path>`
-    - [ ] Check if directory still exists with `fs.existsSync()`
-    - [ ] If exists, use `fs.rmSync(path, { recursive: true, force: true })`
-    - [ ] Verify deletion successful
-    - [ ] Run tests and confirm they pass (Green phase)
+- [x] Task: Implement worktree removal logic [git-note: bdbbd5d]
+    - [x] Create `removeWorktree(trackId: string): Promise<void>`
+    - [x] Execute `git worktree remove <path>`
+    - [x] Check if directory still exists with `fs.existsSync()`
+    - [x] If exists, use `fs.rmSync(path, { recursive: true, force: true })`
+    - [x] Verify deletion successful
+    - [x] Run tests and confirm they pass (Green phase)
 
 ### Task 5.4: Implement branch deletion after cleanup
-- [ ] Task: Write tests for branch deletion
-    - [ ] Write test: Delete conductor/<track_id> branch after successful merge
-    - [ ] Write test: Handle branch deletion errors gracefully
-    - [ ] Write test: Verify branch no longer exists
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for branch deletion [git-note: bdbbd5d]
+    - [x] Write test: Delete conductor/<track_id> branch after successful merge
+    - [x] Write test: Handle branch deletion errors gracefully
+    - [x] Write test: Verify branch no longer exists
+    - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Implement branch deletion
-    - [ ] Create `deleteWorktreeBranch(trackId: string): Promise<void>`
-    - [ ] Execute `git branch -d conductor/<track_id>`
-    - [ ] Catch errors (e.g., branch not fully merged) and report
-    - [ ] Verify branch deleted with `git branch --list`
-    - [ ] Run tests and confirm they pass (Green phase)
+- [x] Task: Implement branch deletion [git-note: bdbbd5d]
+    - [x] Create `deleteWorktreeBranch(trackId: string): Promise<void>`
+    - [x] Execute `git branch -d conductor/<track_id>`
+    - [x] Catch errors (e.g., branch not fully merged) and report
+    - [x] Verify branch deleted with `git branch --list`
+    - [x] Run tests and confirm they pass (Green phase)
 
 ### Task 5.5: Integrate cleanup flow into track completion
-- [ ] Task: Write tests for complete cleanup flow integration
-    - [ ] Write test: Cleanup triggered when track status changes to 'completed'
-    - [ ] Write test: Cleanup skipped if use_worktrees is false
-    - [ ] Write test: Complete cleanup sequence executes in correct order
-    - [ ] Write test: Update metadata to remove worktree fields after cleanup
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for complete cleanup flow integration [git-note: 616a5e6]
+    - [x] Write test: Complete cleanup sequence executes in correct order (merge → remove → delete)
+    - [x] Write test: Stop cleanup if merge conflicts occur
+    - [x] Write test: Preserve worktree if removal fails
+    - [x] Write test: Update metadata to remove worktree fields after cleanup
+    - [x] Write test: Return original project root from metadata
+    - [x] Run tests and confirm they fail (Red phase)
+
+- [x] Task: Implement cleanup orchestrator function [git-note: 616a5e6]
+    - [x] Create `cleanupWorktree(projectRoot, trackId, targetBranch): Promise<CleanupResult>`
+    - [x] Load track metadata to get worktree info
+    - [x] Call mergeWorktreeBranch()
+    - [x] Call removeWorktree()
+    - [x] Call deleteWorktreeBranch()
+    - [x] Update metadata to remove worktree fields (clearTrackWorktreeInfo)
+    - [x] Return detailed CleanupResult with success status for each step
+    - [x] Run tests and confirm they pass (Green phase)
 
 - [ ] Task: Hook cleanup into track completion in implement command
     - [ ] Detect when final task of track is completed
     - [ ] Check if worktree was used (from metadata)
-    - [ ] Call cleanup confirmation dialog
-    - [ ] Execute merge → remove worktree → verify → delete branch sequence
-    - [ ] Update track metadata to remove worktree_path and worktree_branch
-    - [ ] Restore working directory to original location
+    - [ ] Execute cleanup orchestrator with current branch as target
+    - [ ] Handle cleanup errors gracefully (preserve worktree if cleanup fails)
+    - [ ] Restore working directory to original location on success
     - [ ] Run tests and confirm they pass (Green phase)
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Worktree Cleanup and Merge' (Protocol in workflow.md)
