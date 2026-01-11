@@ -74,19 +74,19 @@
 ## Phase 3: Track Metadata Integration [checkpoint: ]
 
 ### Task 3.1: Extend metadata schema for worktrees
-- [ ] Task: Write tests for metadata worktree fields
-    - [ ] Create test file `src/utils/metadataManager.test.ts` (or extend existing)
-    - [ ] Write test: Save metadata with worktree_path field
-    - [ ] Write test: Save metadata with worktree_branch field
-    - [ ] Write test: Load metadata and read worktree fields
-    - [ ] Write test: Handle metadata without worktree fields (backward compatibility)
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for metadata worktree fields [git-note: a5c0f60]
+    - [x] Create test file `src/utils/metadataManager.test.ts` (or extend existing)
+    - [x] Write test: Save metadata with worktree_path field
+    - [x] Write test: Save metadata with worktree_branch field
+    - [x] Write test: Load metadata and read worktree fields
+    - [x] Write test: Handle metadata without worktree fields (backward compatibility)
+    - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Update metadata TypeScript types
-    - [ ] Open or create `src/types/metadata.ts`
-    - [ ] Add optional fields: `worktree_path?: string` and `worktree_branch?: string`
-    - [ ] Update metadata save/load functions in `src/utils/stateManager.ts`
-    - [ ] Run tests and confirm they pass (Green phase)
+- [x] Task: Update metadata TypeScript types [git-note: a5c0f60]
+    - [x] Open or create `src/types/metadata.ts`
+    - [x] Add optional fields: `worktree_path?: string` and `worktree_branch?: string`
+    - [x] Update metadata save/load functions in `src/utils/stateManager.ts`
+    - [x] Run tests and confirm they pass (Green phase)
 
 ### Task 3.2: Store worktree information on track start
 - [ ] Task: Write tests for worktree metadata persistence
