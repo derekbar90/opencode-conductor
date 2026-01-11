@@ -17,12 +17,12 @@
     - [x] Run tests and confirm they pass (Green phase)
     - [x] Refactor if needed while keeping tests green
 
-- [ ] Task: Update workflow.md template with worktree documentation
-    - [ ] Open `src/templates/workflow.md`
-    - [ ] Add section explaining `use_worktrees` option
-    - [ ] Document the worktree directory structure (`../<project-name>-worktrees/<track_id>/`)
-    - [ ] Add example configuration showing `use_worktrees: false` (default)
-    - [ ] Commit changes
+- [x] Task: Update workflow.md template with worktree documentation [2facce1]
+    - [x] Open `src/templates/workflow.md`
+    - [x] Add section explaining `use_worktrees` option
+    - [x] Document the worktree directory structure (`../<project-name>-worktrees/<track_id>/`)
+    - [x] Add example configuration showing `use_worktrees: false` (default)
+    - [x] Commit changes
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation and Configuration' (Protocol in workflow.md)
 
