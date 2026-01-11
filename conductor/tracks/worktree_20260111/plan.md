@@ -108,35 +108,35 @@
 ## Phase 4: Implement Command Integration [checkpoint: ]
 
 ### Task 4.1: Modify implement command to detect worktree configuration
-- [ ] Task: Write tests for worktree mode detection
-    - [ ] Write test: Detect use_worktrees enabled in workflow.md
-    - [ ] Write test: Default to non-worktree mode when disabled
-    - [ ] Write test: Load existing worktree path from track metadata
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for worktree mode detection [git-note: 412584e]
+    - [x] Write test: Detect use_worktrees enabled in workflow.md
+    - [x] Write test: Default to non-worktree mode when disabled
+    - [x] Write test: Load existing worktree path from track metadata
+    - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Update implement command initialization
-    - [ ] Read workflow.md to check `use_worktrees` setting
-    - [ ] Check track metadata for existing worktree_path
-    - [ ] Set execution context based on configuration
-    - [ ] Run tests and confirm they pass (Green phase)
+- [x] Task: Update implement command initialization [git-note: 412584e]
+    - [x] Read workflow.md to check `use_worktrees` setting
+    - [x] Check track metadata for existing worktree_path
+    - [x] Set execution context based on configuration
+    - [x] Run tests and confirm they pass (Green phase)
 
 ### Task 4.2: Implement worktree creation flow in implement command
-- [ ] Task: Write tests for implement command worktree setup
-    - [ ] Write test: Create worktree on first task execution when enabled
-    - [ ] Write test: Get current branch before worktree creation
-    - [ ] Write test: Notify user of worktree creation with path
-    - [ ] Write test: Skip worktree creation if already exists
-    - [ ] Write test: Fall back to normal mode if worktree creation fails
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for implement command worktree setup [git-note: 412584e]
+    - [x] Write test: Create worktree on first task execution when enabled
+    - [x] Write test: Get current branch before worktree creation
+    - [x] Write test: Notify user of worktree creation with path
+    - [x] Write test: Skip worktree creation if already exists
+    - [x] Write test: Fall back to normal mode if worktree creation fails
+    - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Integrate worktree creation into implement command
-    - [ ] Detect if this is the first task of the track
-    - [ ] Get current Git branch with `git branch --show-current`
-    - [ ] Call `createWorktree(trackId, currentBranch)`
-    - [ ] Update track metadata with worktree info
-    - [ ] Display user notification with worktree path
-    - [ ] Implement fallback logic on failure
-    - [ ] Run tests and confirm they pass (Green phase)
+- [x] Task: Integrate worktree creation into implement command [git-note: 551b5d6]
+    - [x] Detect if this is the first task of the track
+    - [x] Get current Git branch with `git branch --show-current`
+    - [x] Call `createWorktree(trackId, currentBranch)`
+    - [x] Update track metadata with worktree info
+    - [x] Display user notification with worktree path
+    - [x] Implement fallback logic on failure
+    - [x] Run tests and confirm they pass (Green phase)
 
 ### Task 4.3: Change working directory context for task execution
 - [ ] Task: Write tests for working directory switching
