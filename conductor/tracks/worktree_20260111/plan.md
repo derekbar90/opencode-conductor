@@ -37,12 +37,12 @@
     - [x] Write test: Verify path is sibling to project root
     - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Implement worktree path utilities
-    - [ ] Create `src/utils/worktreeManager.ts`
-    - [ ] Implement `getWorktreePath(projectRoot: string, trackId: string): string`
-    - [ ] Implement `sanitizeProjectName(name: string): string` for safe directory names
-    - [ ] Run tests and confirm they pass (Green phase)
-    - [ ] Refactor if needed
+- [x] Task: Implement worktree path utilities [1bfbc29]
+    - [x] Create `src/utils/worktreeManager.ts`
+    - [x] Implement `getWorktreePath(projectRoot: string, trackId: string): string`
+    - [x] Implement `sanitizeProjectName(name: string): string` for safe directory names
+    - [x] Run tests and confirm they pass (Green phase)
+    - [x] Refactor if needed
 
 ### Task 2.2: Implement worktree and branch creation
 - [ ] Task: Write tests for worktree creation operations
