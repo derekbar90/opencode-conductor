@@ -9,6 +9,64 @@
 5. **User Experience First:** Every decision should prioritize user experience
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
 
+## Workflow Configuration
+
+### Git Worktree Support
+
+**Configuration Option:** `use_worktrees`  
+**Default Value:** `false`  
+**Type:** Boolean
+
+This workflow supports optional Git worktree integration for track isolation. When enabled, each track implementation runs in its own isolated Git worktree, preventing conflicts between parallel tracks.
+
+**Configuration:**
+```
+use_worktrees: false
+```
+
+**How It Works:**
+
+When `use_worktrees: true`:
+- Each track gets its own isolated working directory in `../<project-name>-worktrees/<track_id>/`
+- A branch named `conductor/<track_id>` is created based on your current branch
+- All task execution happens within the worktree
+- Upon track completion, changes are merged back and the worktree is cleaned up
+
+When `use_worktrees: false` (default):
+- Traditional single working directory approach
+- All tracks share the same workspace
+- Simpler setup, suitable for sequential development
+
+**Example Directory Structure:**
+
+```
+my-project/                          # Main project directory
+├── conductor/
+├── src/
+└── ...
+
+../my-project-worktrees/             # Worktree parent directory (sibling)
+├── auth-feature_20260111/           # Track 1 worktree
+│   ├── conductor/
+│   ├── src/
+│   └── ...
+└── payment-integration_20260112/    # Track 2 worktree
+    ├── conductor/
+    ├── src/
+    └── ...
+```
+
+**Benefits:**
+- Work on multiple tracks simultaneously without conflicts
+- Clean isolation between features
+- Safe parallel development
+- Automatic cleanup after track completion
+
+**Recommended For:**
+- Teams working on multiple features simultaneously
+- Projects with frequent context switching
+- Developers who want strict feature isolation
+
 ## Task Workflow
 
 All tasks follow a strict lifecycle:
