@@ -89,17 +89,17 @@
     - [x] Run tests and confirm they pass (Green phase)
 
 ### Task 3.2: Store worktree information on track start
-- [ ] Task: Write tests for worktree metadata persistence
-    - [ ] Write test: Track metadata includes worktree_path when worktree is used
-    - [ ] Write test: Track metadata includes worktree_branch
-    - [ ] Write test: Track metadata omits worktree fields when use_worktrees is false
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for worktree metadata persistence [git-note: 3612e32]
+    - [x] Write test: Track metadata includes worktree_path when worktree is used
+    - [x] Write test: Track metadata includes worktree_branch
+    - [x] Write test: Track metadata omits worktree fields when use_worktrees is false
+    - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Update implement command to save worktree info
-    - [ ] Modify `src/commands/implement.ts` (or equivalent)
-    - [ ] After worktree creation, update track metadata with worktree_path and worktree_branch
-    - [ ] Ensure metadata is written before any task execution
-    - [ ] Run tests and confirm they pass (Green phase)
+- [x] Task: Update implement command to save worktree info [git-note: 3612e32]
+    - [x] Modify `src/commands/implement.ts` (or equivalent)
+    - [x] After worktree creation, update track metadata with worktree_path and worktree_branch
+    - [x] Ensure metadata is written before any task execution
+    - [x] Run tests and confirm they pass (Green phase)
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Track Metadata Integration' (Protocol in workflow.md)
 
