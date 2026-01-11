@@ -15,6 +15,7 @@ The philosophy is simple: **control your code by controlling your context.** By 
 *   **Modern Permissions**: Fully compatible with OpenCode v1.1.1 granular permission system.
 *   **Protocol-Driven Workflow**: Automated enforcement of the **Context -> Spec -> Plan -> Implement** lifecycle.
 *   **Smart Revert**: A Git-aware revert system that understands logical units of work (Tracks, Phases, Tasks) instead of just raw commit hashes.
+*   **Git Worktree Support**: Optional isolated worktree environments for each Track, preventing context switching and branch conflicts.
 *   **19+ Style Templates**: Built-in support for a vast range of languages including Rust, Solidity, Zig, Julia, Kotlin, Swift, and more.
 *   **Zero-Config Bootstrap**: Automatically installs agents and commands to your global OpenCode configuration on first run.
 *   **Sisyphus Synergy**: Optimized to work alongside [OhMyOpenCode](https://github.com/code-yeongyu/oh-my-opencode) for a multi-agent team experience.
@@ -99,6 +100,80 @@ We highly recommend pinning the `@conductor` agent to a "flash" model for optima
 | `/conductor:implement` | Start implementing the next pending task in the current track. |
 | `/conductor:status` | Get a high-level overview of project progress and active tracks. |
 | `/conductor:revert` | Interactively select a task, phase, or track to undo via Git. |
+
+---
+
+## 🌲 Git Worktree Support
+
+Conductor supports **isolated worktree environments** for each Track, preventing branch conflicts and eliminating context switching overhead.
+
+### What are Git Worktrees?
+
+Git worktrees allow you to have multiple working directories attached to the same repository. Each worktree can be on a different branch, letting you work on multiple features simultaneously without constantly switching branches or stashing changes.
+
+### Why Use Worktrees with Conductor?
+
+*   **Branch Isolation**: Each Track gets its own directory and branch (`conductor/<track_id>`)
+*   **Zero Context Switching**: Work on multiple Tracks without branch conflicts
+*   **Parallel Development**: Multiple Tracks can be in progress simultaneously
+*   **Clean Separation**: Main working directory remains untouched during Track work
+*   **Automatic Cleanup**: Worktrees are merged and removed automatically on Track completion
+
+### Enabling Worktree Mode
+
+Add the following to your project's `conductor/workflow.md`:
+
+```yaml
+use_worktrees: true
+```
+
+When enabled:
+1. **Track Creation**: `/conductor:newTrack` creates a worktree at `../<project>-conductor-<track_id>/`
+2. **Automatic Branch**: Creates and switches to branch `conductor/<track_id>`
+3. **Isolated Work**: All implementation happens in the worktree directory
+4. **Automatic Merge**: Track completion merges changes back to your current branch
+5. **Automatic Cleanup**: Worktree directory and branch are removed after successful merge
+
+### Example Workflow
+
+```bash
+# 1. Enable worktrees in your project
+# Add "use_worktrees: true" to conductor/workflow.md
+
+# 2. Create a new Track
+/conductor:newTrack "Add user authentication"
+# Creates worktree at ../myproject-conductor-auth_20260111/
+
+# 3. Implement the Track
+/conductor:implement
+# All work happens in the isolated worktree
+
+# 4. Complete the Track
+# Conductor automatically:
+#   - Merges conductor/auth_20260111 → your current branch
+#   - Removes the worktree directory
+#   - Deletes the conductor/auth_20260111 branch
+```
+
+### Fallback Behavior
+
+If worktree creation fails (e.g., Git version too old, disk space issues), Conductor automatically falls back to normal branch-based workflow. Your work continues uninterrupted.
+
+### Troubleshooting
+
+**Merge Conflicts During Cleanup**:
+If Track completion encounters merge conflicts:
+1. Conductor lists the conflicted files
+2. Manually resolve conflicts in the worktree directory
+3. Run `/conductor:implement` again to complete cleanup
+
+**Stale Worktree Directories**:
+If you manually delete a worktree, run:
+```bash
+git worktree prune
+```
+
+For detailed troubleshooting, see `docs/worktree-workflow.md`.
 
 ---
 
