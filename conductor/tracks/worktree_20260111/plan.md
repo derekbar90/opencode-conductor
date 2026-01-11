@@ -1,6 +1,6 @@
 # Implementation Plan: Git Worktree Support for Track Isolation
 
-## Phase 1: Foundation and Configuration [checkpoint: ]
+## Phase 1: Foundation and Configuration [checkpoint: a782546]
 
 ### Task 1.1: Add worktree configuration to workflow template
 - [x] Task: Write tests for workflow.md worktree configuration parsing [951dfad]
