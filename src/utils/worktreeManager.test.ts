@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { getWorktreePath, sanitizeProjectName, createWorktree, getCurrentBranch, worktreeExists } from "./worktreeManager.js"
+import { getWorktreePath, sanitizeProjectName, createWorktree, getCurrentBranch, worktreeExists, validateTrackId } from "./worktreeManager.js"
 import { join, resolve, dirname } from "path"
 import { exec } from "child_process"
 import { existsSync } from "fs"
@@ -63,6 +63,57 @@ describe("worktreeManager", () => {
     it("should convert to lowercase", () => {
       expect(sanitizeProjectName("MyProject")).toBe("myproject")
       expect(sanitizeProjectName("OPENCODE")).toBe("opencode")
+    })
+  })
+
+  describe("validateTrackId", () => {
+    it("should accept valid track IDs", () => {
+      expect(validateTrackId("auth-feature_20260111")).toBe("auth-feature_20260111")
+      expect(validateTrackId("feature_123")).toBe("feature_123")
+      expect(validateTrackId("bug-fix-456")).toBe("bug-fix-456")
+    })
+
+    it("should trim whitespace from track IDs", () => {
+      expect(validateTrackId("  feature_123  ")).toBe("feature_123")
+      expect(validateTrackId("\nauth-feature\t")).toBe("auth-feature")
+    })
+
+    it("should reject track IDs with forward slashes", () => {
+      expect(() => validateTrackId("feature/123")).toThrow(
+        'Track ID "feature/123" contains invalid characters'
+      )
+    })
+
+    it("should reject track IDs with backslashes", () => {
+      expect(() => validateTrackId("feature\\123")).toThrow(
+        'Track ID "feature\\123" contains invalid characters'
+      )
+    })
+
+    it("should reject track IDs with colons", () => {
+      expect(() => validateTrackId("feature:123")).toThrow(
+        'Track ID "feature:123" contains invalid characters'
+      )
+    })
+
+    it("should reject track IDs with path traversal sequences", () => {
+      expect(() => validateTrackId("../etc/passwd")).toThrow(
+        'Track ID "../etc/passwd" contains ".." which could lead to path traversal'
+      )
+      expect(() => validateTrackId("feature..123")).toThrow(
+        'Track ID "feature..123" contains ".." which could lead to path traversal'
+      )
+    })
+
+    it("should reject empty track IDs", () => {
+      expect(() => validateTrackId("")).toThrow("Track ID must be a non-empty string")
+      expect(() => validateTrackId("   ")).toThrow("Track ID must be a non-empty string")
+    })
+
+    it("should reject non-string track IDs", () => {
+      expect(() => validateTrackId(null as any)).toThrow("Track ID must be a non-empty string")
+      expect(() => validateTrackId(undefined as any)).toThrow("Track ID must be a non-empty string")
+      expect(() => validateTrackId(123 as any)).toThrow("Track ID must be a non-empty string")
     })
   })
 

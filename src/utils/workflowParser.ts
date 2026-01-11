@@ -1,13 +1,19 @@
+import { readFileSync } from "fs"
+import { join } from "path"
+
 export interface WorkflowConfig {
   use_worktrees: boolean
 }
 
 /**
  * Parse workflow.md content and extract configuration settings
- * @param content - The content of workflow.md file
+ * @param projectRoot - The root directory of the project containing conductor/workflow.md
  * @returns Configuration object with parsed settings
  */
-export function parseWorkflowConfig(content: string): WorkflowConfig {
+export function parseWorkflowConfig(projectRoot: string): WorkflowConfig {
+  const workflowPath = join(projectRoot, "conductor", "workflow.md")
+  const content = readFileSync(workflowPath, "utf8")
+  
   const config: WorkflowConfig = {
     use_worktrees: false,
   }

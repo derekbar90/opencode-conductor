@@ -19,18 +19,52 @@ export function sanitizeProjectName(name: string): string {
 }
 
 /**
+ * Validate and sanitize a track ID for safe use in paths and branch names
+ * @param trackId - The track identifier to validate
+ * @returns Sanitized track ID
+ * @throws Error if trackId contains invalid characters
+ */
+export function validateTrackId(trackId: string): string {
+  if (!trackId || typeof trackId !== "string") {
+    throw new Error("Track ID must be a non-empty string")
+  }
+  
+  const trimmed = trackId.trim()
+  
+  if (!trimmed) {
+    throw new Error("Track ID must be a non-empty string")
+  }
+  
+  if (trimmed.includes("..")) {
+    throw new Error(
+      `Track ID "${trackId}" contains ".." which could lead to path traversal.`
+    )
+  }
+  
+  if (/[\/\\:]/.test(trimmed)) {
+    throw new Error(
+      `Track ID "${trackId}" contains invalid characters. ` +
+      `Path separators (/, \\) and colons (:) are not allowed.`
+    )
+  }
+  
+  return trimmed
+}
+
+/**
  * Generate the full path for a worktree directory
  * @param projectRoot - Absolute path to the project root
  * @param trackId - The track identifier
  * @returns Absolute path to the worktree directory
  */
 export function getWorktreePath(projectRoot: string, trackId: string): string {
+  const validatedTrackId = validateTrackId(trackId)
   const projectDirName = basename(projectRoot)
   const sanitizedName = sanitizeProjectName(projectDirName)
   const parentDir = dirname(projectRoot)
   const worktreesParent = join(parentDir, `${sanitizedName}-worktrees`)
   
-  return join(worktreesParent, trackId)
+  return join(worktreesParent, validatedTrackId)
 }
 
 /**

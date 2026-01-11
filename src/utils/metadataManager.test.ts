@@ -153,7 +153,7 @@ describe("metadataManager", () => {
 
       expect(() => {
         loadTrackMetadata("/test/project", "feature_20260111")
-      }      ).toThrow()
+      }).toThrow()
     })
   })
 

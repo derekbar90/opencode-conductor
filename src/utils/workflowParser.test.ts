@@ -1,7 +1,16 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { parseWorkflowConfig } from "./workflowParser.js"
+import { readFileSync } from "fs"
+
+vi.mock("fs", () => ({
+  readFileSync: vi.fn(),
+}))
 
 describe("workflowParser", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   describe("parseWorkflowConfig", () => {
     it("should parse workflow.md with use_worktrees: true", () => {
       const content = `# Project Workflow
@@ -11,8 +20,11 @@ use_worktrees: true
 
 ## Other sections...`
       
-      const config = parseWorkflowConfig(content)
+      vi.mocked(readFileSync).mockReturnValue(content)
+      
+      const config = parseWorkflowConfig("/test/project")
       expect(config.use_worktrees).toBe(true)
+      expect(readFileSync).toHaveBeenCalledWith("/test/project/conductor/workflow.md", "utf8")
     })
 
     it("should parse workflow.md with use_worktrees: false", () => {
@@ -23,8 +35,11 @@ use_worktrees: false
 
 ## Other sections...`
       
-      const config = parseWorkflowConfig(content)
+      vi.mocked(readFileSync).mockReturnValue(content)
+      
+      const config = parseWorkflowConfig("/test/project")
       expect(config.use_worktrees).toBe(false)
+      expect(readFileSync).toHaveBeenCalledWith("/test/project/conductor/workflow.md", "utf8")
     })
 
     it("should default to false when worktree config is not specified", () => {
@@ -35,14 +50,18 @@ use_worktrees: false
 
 ## Other sections...`
       
-      const config = parseWorkflowConfig(content)
+      vi.mocked(readFileSync).mockReturnValue(content)
+      
+      const config = parseWorkflowConfig("/test/project")
       expect(config.use_worktrees).toBe(false)
     })
 
     it("should handle empty content", () => {
       const content = ""
       
-      const config = parseWorkflowConfig(content)
+      vi.mocked(readFileSync).mockReturnValue(content)
+      
+      const config = parseWorkflowConfig("/test/project")
       expect(config.use_worktrees).toBe(false)
     })
 
@@ -52,7 +71,9 @@ use_worktrees: false
 ## Configuration
 USE_WORKTREES: true`
       
-      const config = parseWorkflowConfig(content)
+      vi.mocked(readFileSync).mockReturnValue(content)
+      
+      const config = parseWorkflowConfig("/test/project")
       expect(config.use_worktrees).toBe(true)
     })
 
@@ -70,7 +91,9 @@ USE_WORKTREES: true`
 
       testCases.forEach(({ input, expected }) => {
         const content = `use_worktrees: ${input}`
-        const config = parseWorkflowConfig(content)
+        vi.mocked(readFileSync).mockReturnValue(content)
+        
+        const config = parseWorkflowConfig("/test/project")
         expect(config.use_worktrees).toBe(expected)
       })
     })

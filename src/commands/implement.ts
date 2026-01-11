@@ -33,6 +33,8 @@ export const implementCommand = createConductorCommand({
         const worktreeResult = await setupWorktreeForTrack(workDir, args.track_name);
         
         if (worktreeResult.worktreePath) {
+          (ctx as any).workDir = worktreeResult.worktreePath;
+          
           worktreeInfo = `\n\n## Worktree Configuration\n\nThis track is using Git worktree isolation:\n- **Worktree Path**: ${worktreeResult.worktreePath}\n- **Branch**: ${worktreeResult.worktreeBranch}\n- **Working Directory**: ${worktreeResult.worktreePath}\n\n`;
           
           if (worktreeResult.worktreeCreated) {
