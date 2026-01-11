@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync } from "fs"
 import { join } from "path"
-import { loadTrackMetadata, saveTrackMetadata, updateTrackWorktreeInfo, type TrackMetadata } from "./metadataManager.js"
+import { loadTrackMetadata, saveTrackMetadata, updateTrackWorktreeInfo, clearTrackWorktreeInfo, type TrackMetadata } from "./metadataManager.js"
 
 vi.mock("fs", () => ({
   readFileSync: vi.fn(),
@@ -293,6 +293,122 @@ describe("metadataManager", () => {
           "conductor/nonexistent"
         )
       ).toThrow()
+    })
+  })
+
+  describe("clearTrackWorktreeInfo", () => {
+    it("should remove worktree_path from metadata", () => {
+      const existingMetadata = {
+        track_id: "feature_20260111",
+        type: "feature" as const,
+        status: "completed" as const,
+        created_at: "2026-01-11T00:00:00Z",
+        updated_at: "2026-01-11T00:00:00Z",
+        description: "Test feature",
+        worktree_path: "/test/project-worktrees/feature_20260111",
+        worktree_branch: "conductor/feature_20260111",
+        original_project_root: "/test/project",
+      }
+
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(existingMetadata))
+
+      clearTrackWorktreeInfo("/test/project", "feature_20260111")
+
+      const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
+      expect(writtenData.worktree_path).toBeUndefined()
+    })
+
+    it("should remove worktree_branch from metadata", () => {
+      const existingMetadata = {
+        track_id: "feature_20260111",
+        type: "feature" as const,
+        status: "completed" as const,
+        created_at: "2026-01-11T00:00:00Z",
+        updated_at: "2026-01-11T00:00:00Z",
+        description: "Test feature",
+        worktree_path: "/test/project-worktrees/feature_20260111",
+        worktree_branch: "conductor/feature_20260111",
+        original_project_root: "/test/project",
+      }
+
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(existingMetadata))
+
+      clearTrackWorktreeInfo("/test/project", "feature_20260111")
+
+      const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
+      expect(writtenData.worktree_branch).toBeUndefined()
+    })
+
+    it("should remove original_project_root from metadata", () => {
+      const existingMetadata = {
+        track_id: "feature_20260111",
+        type: "feature" as const,
+        status: "completed" as const,
+        created_at: "2026-01-11T00:00:00Z",
+        updated_at: "2026-01-11T00:00:00Z",
+        description: "Test feature",
+        worktree_path: "/test/project-worktrees/feature_20260111",
+        worktree_branch: "conductor/feature_20260111",
+        original_project_root: "/test/project",
+      }
+
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(existingMetadata))
+
+      clearTrackWorktreeInfo("/test/project", "feature_20260111")
+
+      const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
+      expect(writtenData.original_project_root).toBeUndefined()
+    })
+
+    it("should preserve other metadata fields when clearing worktree info", () => {
+      const existingMetadata = {
+        track_id: "feature_20260111",
+        type: "feature" as const,
+        status: "completed" as const,
+        created_at: "2026-01-11T00:00:00Z",
+        updated_at: "2026-01-11T00:00:00Z",
+        description: "Test feature with existing data",
+        worktree_path: "/test/project-worktrees/feature_20260111",
+        worktree_branch: "conductor/feature_20260111",
+        original_project_root: "/test/project",
+      }
+
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(existingMetadata))
+
+      clearTrackWorktreeInfo("/test/project", "feature_20260111")
+
+      const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
+      expect(writtenData.track_id).toBe("feature_20260111")
+      expect(writtenData.type).toBe("feature")
+      expect(writtenData.status).toBe("completed")
+      expect(writtenData.description).toBe("Test feature with existing data")
+    })
+
+    it("should update the updated_at timestamp", () => {
+      const existingMetadata = {
+        track_id: "feature_20260111",
+        type: "feature" as const,
+        status: "completed" as const,
+        created_at: "2026-01-11T00:00:00Z",
+        updated_at: "2026-01-11T00:00:00Z",
+        description: "Test feature",
+        worktree_path: "/test/project-worktrees/feature_20260111",
+        worktree_branch: "conductor/feature_20260111",
+        original_project_root: "/test/project",
+      }
+
+      vi.mocked(existsSync).mockReturnValue(true)
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(existingMetadata))
+
+      clearTrackWorktreeInfo("/test/project", "feature_20260111")
+
+      const writtenData = JSON.parse(vi.mocked(writeFileSync).mock.calls[0][1] as string)
+      expect(writtenData.updated_at).not.toBe("2026-01-11T00:00:00Z")
+      expect(new Date(writtenData.updated_at).getTime()).toBeGreaterThan(0)
     })
   })
 })

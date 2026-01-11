@@ -1,0 +1,8 @@
+{
+  "track_id": "gemini-refs_20260106",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-06T19:23:45Z",
+  "updated_at": "2026-01-06T19:23:45Z",
+  "description": "Update all user-facing messages and documentation to remove Gemini CLI references and use OpenCode terminology"
+}

@@ -63,3 +63,17 @@ export function updateTrackWorktreeInfo(
   
   saveTrackMetadata(projectRoot, trackId, metadata)
 }
+
+export function clearTrackWorktreeInfo(
+  projectRoot: string,
+  trackId: string
+): void {
+  const metadata = loadTrackMetadata(projectRoot, trackId)
+
+  delete metadata.worktree_path
+  delete metadata.worktree_branch
+  delete metadata.original_project_root
+  metadata.updated_at = new Date().toISOString()
+
+  saveTrackMetadata(projectRoot, trackId, metadata)
+}

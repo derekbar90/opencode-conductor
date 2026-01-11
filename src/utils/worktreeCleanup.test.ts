@@ -6,7 +6,10 @@ import {
   mergeWorktreeBranch,
   removeWorktree,
   deleteWorktreeBranch,
+  cleanupWorktree,
+  type CleanupResult,
 } from "./worktreeCleanup.js"
+import * as metadataManager from "./metadataManager.js"
 
 vi.mock("child_process", () => ({
   exec: vi.fn(),
@@ -15,6 +18,11 @@ vi.mock("child_process", () => ({
 vi.mock("fs", () => ({
   existsSync: vi.fn(),
   rmSync: vi.fn(),
+}))
+
+vi.mock("./metadataManager.js", () => ({
+  loadTrackMetadata: vi.fn(),
+  clearTrackWorktreeInfo: vi.fn(),
 }))
 
 const execAsync = promisify(exec)
@@ -228,6 +236,166 @@ describe("worktreeCleanup", () => {
       await expect(
         deleteWorktreeBranch("/test/project", "feature_123")
       ).rejects.toThrow("branch not fully merged")
+    })
+  })
+
+  describe("cleanupWorktree orchestrator", () => {
+    it("should execute complete cleanup sequence successfully", async () => {
+      vi.mocked(metadataManager.loadTrackMetadata).mockReturnValue({
+        track_id: "feature_123",
+        type: "feature",
+        status: "completed",
+        created_at: "2026-01-11T12:00:00Z",
+        updated_at: "2026-01-11T12:30:00Z",
+        description: "Test feature",
+        worktree_path: "/test/project-worktrees/feature_123",
+        worktree_branch: "conductor/feature_123",
+        original_project_root: "/test/project",
+      })
+
+      vi.mocked(exec).mockImplementation((cmd: string, options: any, callback: any) => {
+        if (cmd.includes("checkout") || cmd.includes("merge")) {
+          callback(null, { stdout: "Success", stderr: "" })
+        } else if (cmd.includes("worktree remove")) {
+          callback(null, { stdout: "", stderr: "" })
+        } else if (cmd.includes("branch -d")) {
+          callback(null, { stdout: "Deleted branch", stderr: "" })
+        } else if (cmd.includes("branch --list")) {
+          callback(null, { stdout: "", stderr: "" })
+        }
+        return {} as any
+      })
+
+      vi.mocked(existsSync).mockReturnValue(false)
+
+      const result = await cleanupWorktree("/test/project", "feature_123", "main")
+
+      expect(result.success).toBe(true)
+      expect(result.merged).toBe(true)
+      expect(result.worktreeRemoved).toBe(true)
+      expect(result.branchDeleted).toBe(true)
+      expect(metadataManager.clearTrackWorktreeInfo).toHaveBeenCalledWith(
+        "/test/project",
+        "feature_123"
+      )
+    })
+
+    it("should stop cleanup sequence if merge fails due to conflicts", async () => {
+      vi.mocked(metadataManager.loadTrackMetadata).mockReturnValue({
+        track_id: "feature_123",
+        type: "feature",
+        status: "completed",
+        created_at: "2026-01-11T12:00:00Z",
+        updated_at: "2026-01-11T12:30:00Z",
+        description: "Test feature",
+        worktree_path: "/test/project-worktrees/feature_123",
+        worktree_branch: "conductor/feature_123",
+        original_project_root: "/test/project",
+      })
+
+      vi.mocked(exec).mockImplementation((cmd: string, options: any, callback: any) => {
+        if (cmd.includes("checkout")) {
+          callback(null, { stdout: "Success", stderr: "" })
+        } else if (cmd.includes("merge")) {
+          callback(new Error("CONFLICT: merge conflict"), { stdout: "", stderr: "" })
+        }
+        return {} as any
+      })
+
+      const result = await cleanupWorktree("/test/project", "feature_123", "main")
+
+      expect(result.success).toBe(false)
+      expect(result.merged).toBe(false)
+      expect(result.worktreeRemoved).toBe(false)
+      expect(result.branchDeleted).toBe(false)
+      expect(result.error).toContain("Merge conflicts detected")
+      expect(metadataManager.clearTrackWorktreeInfo).not.toHaveBeenCalled()
+    })
+
+    it("should preserve worktree if removal fails", async () => {
+      vi.mocked(metadataManager.loadTrackMetadata).mockReturnValue({
+        track_id: "feature_123",
+        type: "feature",
+        status: "completed",
+        created_at: "2026-01-11T12:00:00Z",
+        updated_at: "2026-01-11T12:30:00Z",
+        description: "Test feature",
+        worktree_path: "/test/project-worktrees/feature_123",
+        worktree_branch: "conductor/feature_123",
+        original_project_root: "/test/project",
+      })
+
+      vi.mocked(exec).mockImplementation((cmd: string, options: any, callback: any) => {
+        if (cmd.includes("checkout") || cmd.includes("merge")) {
+          callback(null, { stdout: "Success", stderr: "" })
+        } else if (cmd.includes("worktree remove")) {
+          callback(new Error("Cannot remove worktree"), { stdout: "", stderr: "" })
+        }
+        return {} as any
+      })
+
+      const result = await cleanupWorktree("/test/project", "feature_123", "main")
+
+      expect(result.success).toBe(false)
+      expect(result.merged).toBe(true)
+      expect(result.worktreeRemoved).toBe(false)
+      expect(result.branchDeleted).toBe(false)
+      expect(result.error).toContain("Failed to remove worktree")
+      expect(metadataManager.clearTrackWorktreeInfo).not.toHaveBeenCalled()
+    })
+
+    it("should clean up metadata after complete successful cleanup", async () => {
+      vi.mocked(metadataManager.loadTrackMetadata).mockReturnValue({
+        track_id: "feature_123",
+        type: "feature",
+        status: "completed",
+        created_at: "2026-01-11T12:00:00Z",
+        updated_at: "2026-01-11T12:30:00Z",
+        description: "Test feature",
+        worktree_path: "/test/project-worktrees/feature_123",
+        worktree_branch: "conductor/feature_123",
+        original_project_root: "/test/project",
+      })
+
+      vi.mocked(exec).mockImplementation((cmd: string, options: any, callback: any) => {
+        callback(null, { stdout: "", stderr: "" })
+        return {} as any
+      })
+
+      vi.mocked(existsSync).mockReturnValue(false)
+
+      await cleanupWorktree("/test/project", "feature_123", "main")
+
+      expect(metadataManager.clearTrackWorktreeInfo).toHaveBeenCalledWith(
+        "/test/project",
+        "feature_123"
+      )
+    })
+
+    it("should return original project root from metadata", async () => {
+      const originalRoot = "/test/original/project"
+      vi.mocked(metadataManager.loadTrackMetadata).mockReturnValue({
+        track_id: "feature_123",
+        type: "feature",
+        status: "completed",
+        created_at: "2026-01-11T12:00:00Z",
+        updated_at: "2026-01-11T12:30:00Z",
+        description: "Test feature",
+        worktree_path: "/test/project-worktrees/feature_123",
+        worktree_branch: "conductor/feature_123",
+        original_project_root: originalRoot,
+      })
+
+      vi.mocked(exec).mockImplementation((cmd: string, options: any, callback: any) => {
+        callback(null, { stdout: "", stderr: "" })
+        return {} as any
+      })
+
+      vi.mocked(existsSync).mockReturnValue(false)
+
+      const result = await cleanupWorktree("/test/project", "feature_123", "main")
+
+      expect(result.originalProjectRoot).toBe(originalRoot)
     })
   })
 })
