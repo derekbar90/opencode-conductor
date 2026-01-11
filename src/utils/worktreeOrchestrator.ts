@@ -23,7 +23,15 @@ export async function setupWorktreeForTrack(
   trackId: string
 ): Promise<WorktreeSetupResult> {
   try {
-    const config = parseWorkflowConfig(projectRoot)
+    let config
+    try {
+      config = parseWorkflowConfig(projectRoot)
+    } catch (err) {
+      const message =
+        `Failed to parse workflow configuration: ${(err as Error).message}. ` +
+        `Check that conductor/workflow.md exists and is valid YAML/Markdown.`
+      throw new Error(message)
+    }
 
     if (!config.use_worktrees) {
       return {

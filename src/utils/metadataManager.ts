@@ -45,7 +45,15 @@ export function loadTrackMetadata(
   }
 
   const content = readFileSync(metadataPath, "utf-8")
-  return JSON.parse(content) as TrackMetadata
+  
+  try {
+    return JSON.parse(content) as TrackMetadata
+  } catch (err) {
+    const message =
+      `Failed to parse track metadata JSON at ${metadataPath}: ` +
+      `${(err as Error).message}. The file may be corrupted or contain invalid JSON.`
+    throw new Error(message)
+  }
 }
 
 export function updateTrackWorktreeInfo(
