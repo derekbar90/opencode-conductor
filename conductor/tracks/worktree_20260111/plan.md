@@ -59,15 +59,15 @@
     - [x] Return absolute path to created worktree
     - [x] Run tests and confirm they pass (Green phase)
 
-- [ ] Task: Write tests for worktree existence check
-    - [ ] Write test: Detect when worktree directory already exists
-    - [ ] Write test: Return false when worktree doesn't exist
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for worktree existence check [git-note: 80067c7]
+    - [x] Write test: Detect when worktree directory already exists
+    - [x] Write test: Return false when worktree doesn't exist
+    - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Implement worktree existence validation
-    - [ ] Add `worktreeExists(trackId: string): Promise<boolean>`
-    - [ ] Check both filesystem and Git worktree list
-    - [ ] Run tests and confirm they pass (Green phase)
+- [x] Task: Implement worktree existence validation [git-note: 80067c7]
+    - [x] Add `worktreeExists(trackId: string): Promise<boolean>`
+    - [x] Check both filesystem and Git worktree list
+    - [x] Run tests and confirm they pass (Green phase)
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Worktree Creation Logic' (Protocol in workflow.md)
 
