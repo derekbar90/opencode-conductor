@@ -29,13 +29,13 @@
 ## Phase 2: Worktree Creation Logic [checkpoint: ]
 
 ### Task 2.1: Implement worktree path resolution
-- [ ] Task: Write tests for worktree path generation
-    - [ ] Create test file `src/utils/worktreeManager.test.ts`
-    - [ ] Write test: Generate worktree path from project name and track_id
-    - [ ] Write test: Handle project names with spaces
-    - [ ] Write test: Handle special characters in project names
-    - [ ] Write test: Verify path is sibling to project root
-    - [ ] Run tests and confirm they fail (Red phase)
+- [x] Task: Write tests for worktree path generation [1bfbc29]
+    - [x] Create test file `src/utils/worktreeManager.test.ts`
+    - [x] Write test: Generate worktree path from project name and track_id
+    - [x] Write test: Handle project names with spaces
+    - [x] Write test: Handle special characters in project names
+    - [x] Write test: Verify path is sibling to project root
+    - [x] Run tests and confirm they fail (Red phase)
 
 - [ ] Task: Implement worktree path utilities
     - [ ] Create `src/utils/worktreeManager.ts`
