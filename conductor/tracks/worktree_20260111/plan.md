@@ -10,12 +10,12 @@
     - [x] Write test: Parse workflow.md without worktree config (default false)
     - [x] Run tests and confirm they fail (Red phase)
 
-- [ ] Task: Implement workflow configuration parser for worktrees
-    - [ ] Create or update `src/utils/workflowParser.ts` to extract `use_worktrees` setting
-    - [ ] Add TypeScript type definition for worktree config
-    - [ ] Implement logic to default to `false` when not specified
-    - [ ] Run tests and confirm they pass (Green phase)
-    - [ ] Refactor if needed while keeping tests green
+- [x] Task: Implement workflow configuration parser for worktrees [951dfad]
+    - [x] Create or update `src/utils/workflowParser.ts` to extract `use_worktrees` setting
+    - [x] Add TypeScript type definition for worktree config
+    - [x] Implement logic to default to `false` when not specified
+    - [x] Run tests and confirm they pass (Green phase)
+    - [x] Refactor if needed while keeping tests green
 
 - [ ] Task: Update workflow.md template with worktree documentation
     - [ ] Open `src/templates/workflow.md`
