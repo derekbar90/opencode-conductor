@@ -103,6 +103,21 @@ describe("worktreeManager", () => {
       )
     })
 
+    it("should reject track IDs with shell metacharacters", () => {
+      expect(() => validateTrackId("feature;rm -rf")).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId("test|cat /etc/passwd")).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId("feature`whoami`")).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId("test$USER")).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId("feature(test)")).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId("test&background")).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId("feature>output")).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId("test<input")).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId("feature'quoted'")).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId('test"quoted"')).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId("feature!bang")).toThrow("contains unsafe shell characters")
+      expect(() => validateTrackId("test with spaces")).toThrow("contains unsafe shell characters")
+    })
+
     it("should reject empty track IDs", () => {
       expect(() => validateTrackId("")).toThrow("Track ID must be a non-empty string")
       expect(() => validateTrackId("   ")).toThrow("Track ID must be a non-empty string")
@@ -222,12 +237,12 @@ describe("worktreeManager", () => {
         expect.any(Function)
       )
       expect(exec).toHaveBeenCalledWith(
-        expect.stringContaining("-b conductor/feature_20260111"),
+        expect.stringContaining('-b "conductor/feature_20260111"'),
         expect.any(Object),
         expect.any(Function)
       )
       expect(exec).toHaveBeenCalledWith(
-        expect.stringContaining("main"),
+        expect.stringContaining('"main"'),
         expect.any(Object),
         expect.any(Function)
       )

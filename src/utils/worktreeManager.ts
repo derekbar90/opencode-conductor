@@ -35,6 +35,14 @@ export function validateTrackId(trackId: string): string {
     throw new Error("Track ID must be a non-empty string")
   }
   
+  // Prevent shell injection: reject shell metacharacters that could be dangerous
+  if (/[;&|`$()<>'"!\s]/.test(trimmed)) {
+    throw new Error(
+      `Track ID "${trackId}" contains unsafe shell characters. ` +
+      `Only alphanumeric characters, hyphens (-), underscores (_), and dots (.) are allowed.`
+    )
+  }
+  
   if (trimmed.includes("..")) {
     throw new Error(
       `Track ID "${trackId}" contains ".." which could lead to path traversal.`
@@ -112,7 +120,7 @@ export async function createWorktree(
     }
   }
   
-  const command = `git worktree add "${worktreePath}" -b ${branchName} ${baseBranch}`
+  const command = `git worktree add "${worktreePath}" -b "${branchName}" "${baseBranch}"`
   
   await execAsync(command, { cwd: projectRoot })
   
