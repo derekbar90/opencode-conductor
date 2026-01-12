@@ -41,7 +41,11 @@ export function loadTrackMetadata(
   )
 
   if (!existsSync(metadataPath)) {
-    throw new Error(`Track metadata not found: ${metadataPath}`)
+    const message =
+      `Track metadata not found at: ${metadataPath}. ` +
+      `The track may not exist or may not have been initialized. ` +
+      `Use /conductor:newTrack to create a new track.`
+    throw new Error(message)
   }
 
   const content = readFileSync(metadataPath, "utf-8")
