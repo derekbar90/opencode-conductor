@@ -1,0 +1,8 @@
+{
+  "track_id": "worktree_20260111",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-11T12:39:00Z",
+  "updated_at": "2026-01-11T12:39:00Z",
+  "description": "Add Git worktree support for track isolation with configurable workflow option"
+}

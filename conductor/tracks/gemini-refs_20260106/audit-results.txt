@@ -1,0 +1,72 @@
+═══════════════════════════════════════════════════════════════
+GEMINI REFERENCE AUDIT REPORT
+═══════════════════════════════════════════════════════════════
+
+▸ Generated: 2026-01-06 18:00:20
+═══════════════════════════════════════════════════════════════
+CATEGORY 1: USER-FACING TEXT (High Priority)
+═══════════════════════════════════════════════════════════════
+
+▸ Files: *.toml (prompt files)
+./src/prompts/setup.toml:87:                1.  **Respect Ignore Files:** Before scanning any files, you MUST check for the existence of `.geminiignore` and `.gitignore` files. If either or both exist, you MUST use their combined patterns to exclude files and directories from your analysis. The patterns in `.geminiignore` should take precedence over `.gitignore` if there are conflicts. This is the primary mechanism for avoiding token-heavy, irrelevant files like `node_modules`.
+./src/prompts/setup.toml:89:                3.  **Fallback to Manual Ignores:** ONLY if neither `.geminiignore` nor `.gitignore` exist, you should fall back to manually ignoring common directories. Example command: `ls -lR -I 'node_modules' -I '.m2' -I 'build' -I 'dist' -I 'bin' -I 'target' -I '.git' -I '.idea' -I '.vscode'`.
+./src/prompts/setup.toml:162:    > You can always edit the generated file with the Gemini CLI built-in option "Modify with external editor" (if present), or with your favorite external editor after this step.
+./src/prompts/setup.toml:212:    > You can always edit the generated file with the Gemini CLI built-in option "Modify with external editor" (if present), or with your favorite external editor after this step.
+./src/prompts/setup.toml:269:    > You can always edit the generated file with the Gemini CLI built-in option "Modify with external editor" (if present), or with your favorite external editor after this step.
+
+▸ Files: *.md in src/prompts/
+✓ No matches found
+═══════════════════════════════════════════════════════════════
+CATEGORY 2: DOCUMENTATION (High Priority)
+═══════════════════════════════════════════════════════════════
+
+▸ Files: README.md, INSTALL.md, CONTRIBUTING.md
+
+Checking README.md:
+71:      "model": "google/gemini-3-flash"
+83:      "model": "google/gemini-3-flash"
+
+Checking INSTALL.md:
+40:      "model": "google/gemini-3-flash"
+52:      "model": "google/gemini-3-flash"
+
+Checking CONTRIBUTING.md:
+✓ No matches found
+═══════════════════════════════════════════════════════════════
+CATEGORY 3: TEMPLATES (Medium Priority)
+═══════════════════════════════════════════════════════════════
+
+▸ Files: src/templates/*.md
+✓ No matches found
+═══════════════════════════════════════════════════════════════
+CATEGORY 4: SOURCE CODE (Medium Priority)
+═══════════════════════════════════════════════════════════════
+
+▸ Files: *.ts, *.js in src/
+✓ No matches found
+═══════════════════════════════════════════════════════════════
+CATEGORY 5: LEGACY DIRECTORY (Low Priority)
+═══════════════════════════════════════════════════════════════
+
+▸ Files: legacy/*
+./legacy/gemini-extension.json:4:  "contextFileName": "GEMINI.md"
+./legacy/commands/conductor/setup.toml:85:                1.  **Respect Ignore Files:** Before scanning any files, you MUST check for the existence of `.geminiignore` and `.gitignore` files. If either or both exist, you MUST use their combined patterns to exclude files and directories from your analysis. The patterns in `.geminiignore` should take precedence over `.gitignore` if there are conflicts. This is the primary mechanism for avoiding token-heavy, irrelevant files like `node_modules`.
+./legacy/commands/conductor/setup.toml:87:                3.  **Fallback to Manual Ignores:** ONLY if neither `.geminiignore` nor `.gitignore` exist, you should fall back to manually ignoring common directories. Example command: `ls -lR -I 'node_modules' -I '.m2' -I 'build' -I 'dist' -I 'bin' -I 'target' -I '.git' -I '.idea' -I '.vscode'`.
+./legacy/commands/conductor/setup.toml:160:    > You can always edit the generated file with the Gemini CLI built-in option "Modify with external editor" (if present), or with your favorite external editor after this step.
+./legacy/commands/conductor/setup.toml:210:    > You can always edit the generated file with the Gemini CLI built-in option "Modify with external editor" (if present), or with your favorite external editor after this step.
+./legacy/commands/conductor/setup.toml:267:    > You can always edit the generated file with the Gemini CLI built-in option "Modify with external editor" (if present), or with your favorite external editor after this step.
+./legacy/commands/conductor/setup.toml:278:    -   List the available style guides by running `ls ~/.gemini/extensions/conductor/templates/code_styleguides/`.
+./legacy/commands/conductor/setup.toml:293:    -   **Action:** Construct and execute a command to create the directory and copy all selected files. For example: `mkdir -p conductor/code_styleguides && cp ~/.gemini/extensions/conductor/templates/code_styleguides/python.md ~/.gemini/extensions/conductor/templates/code_styleguides/javascript.md conductor/code_styleguides/`
+./legacy/commands/conductor/setup.toml:299:    -   Copy `~/.gemini/extensions/conductor/templates/workflow.md` to `conductor/workflow.md`.
+═══════════════════════════════════════════════════════════════
+SUMMARY STATISTICS
+═══════════════════════════════════════════════════════════════
+Total files with matches: 7
+Total occurrences: 17
+
+▸ Breakdown by File Type:
+  *.toml: 5 occurrences
+  *.md: 5 occurrences
+═══════════════════════════════════════════════════════════════
+AUDIT COMPLETE
+═══════════════════════════════════════════════════════════════

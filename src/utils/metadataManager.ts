@@ -1,0 +1,91 @@
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs"
+import { join } from "path"
+
+export interface TrackMetadata {
+  track_id: string
+  type: "feature" | "bug"
+  status: "new" | "in_progress" | "completed"
+  created_at: string
+  updated_at: string
+  description: string
+  worktree_path?: string
+  worktree_branch?: string
+  original_project_root?: string
+}
+
+export function saveTrackMetadata(
+  projectRoot: string,
+  trackId: string,
+  metadata: TrackMetadata
+): void {
+  const trackDir = join(projectRoot, "conductor", "tracks", trackId)
+  const metadataPath = join(trackDir, "metadata.json")
+
+  if (!existsSync(trackDir)) {
+    mkdirSync(trackDir, { recursive: true })
+  }
+
+  writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), "utf-8")
+}
+
+export function loadTrackMetadata(
+  projectRoot: string,
+  trackId: string
+): TrackMetadata {
+  const metadataPath = join(
+    projectRoot,
+    "conductor",
+    "tracks",
+    trackId,
+    "metadata.json"
+  )
+
+  if (!existsSync(metadataPath)) {
+    const message =
+      `Track metadata not found at: ${metadataPath}. ` +
+      `The track may not exist or may not have been initialized. ` +
+      `Use /conductor:newTrack to create a new track.`
+    throw new Error(message)
+  }
+
+  const content = readFileSync(metadataPath, "utf-8")
+  
+  try {
+    return JSON.parse(content) as TrackMetadata
+  } catch (err) {
+    const message =
+      `Failed to parse track metadata JSON at ${metadataPath}: ` +
+      `${(err as Error).message}. The file may be corrupted or contain invalid JSON.`
+    throw new Error(message)
+  }
+}
+
+export function updateTrackWorktreeInfo(
+  projectRoot: string,
+  trackId: string,
+  worktreePath: string,
+  worktreeBranch: string
+): void {
+  const metadata = loadTrackMetadata(projectRoot, trackId)
+  
+  metadata.worktree_path = worktreePath
+  metadata.worktree_branch = worktreeBranch
+  metadata.original_project_root = projectRoot
+  metadata.updated_at = new Date().toISOString()
+  
+  saveTrackMetadata(projectRoot, trackId, metadata)
+}
+
+export function clearTrackWorktreeInfo(
+  projectRoot: string,
+  trackId: string
+): void {
+  const metadata = loadTrackMetadata(projectRoot, trackId)
+
+  delete metadata.worktree_path
+  delete metadata.worktree_branch
+  delete metadata.original_project_root
+  metadata.updated_at = new Date().toISOString()
+
+  saveTrackMetadata(projectRoot, trackId, metadata)
+}

@@ -1,3 +1,24 @@
+## [Unreleased]
+
+### Features
+
+* **Git Worktree Support**: Add optional isolated worktree environments for each Track
+  - Enable with `use_worktrees: true` in `conductor/workflow.md`
+  - Each Track gets its own worktree directory and branch (`conductor/<track_id>`)
+  - Automatic merge and cleanup on Track completion
+  - Graceful fallback to normal workflow if worktree creation fails
+  - Prevents branch conflicts and eliminates context switching overhead
+  - See `docs/worktree-workflow.md` for detailed usage guide
+
+### Backward Compatibility
+
+* Worktree support is **opt-in** via configuration
+* Default behavior (`use_worktrees: false`) remains unchanged
+* Existing projects continue working without modifications
+* No breaking changes to commands or workflow
+
+---
+
 ## [1.30.2](https://github.com/derekbar90/opencode-conductor/compare/v1.30.1...v1.30.2) (2026-01-09)
 
 
