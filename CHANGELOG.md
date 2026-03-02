@@ -1,3 +1,10 @@
+# [1.32.0](https://github.com/derekbar90/opencode-conductor/compare/v1.31.0...v1.32.0) (2026-03-02)
+
+
+### Features
+
+* **build:** remove submodule dependency and streamline build process ([fa14cb3](https://github.com/derekbar90/opencode-conductor/commit/fa14cb3e8b4d399a0500d8458331f2296720cd11))
+
 # [1.31.0](https://github.com/derekbar90/opencode-conductor/compare/v1.30.2...v1.31.0) (2026-03-02)
 
 
