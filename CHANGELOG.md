@@ -1,3 +1,12 @@
+# [1.31.0](https://github.com/derekbar90/opencode-conductor/compare/v1.30.2...v1.31.0) (2026-03-02)
+
+
+### Features
+
+* **conductor:** convert legacy/conductor to regular folder for OpenCode compatibility ([08bebf9](https://github.com/derekbar90/opencode-conductor/commit/08bebf94e7f91c0a8c20f3877cf7abbc0e0803c5))
+* **conductor:** upgrade to latest protocol and add review command ([d88c73c](https://github.com/derekbar90/opencode-conductor/commit/d88c73c6442fe319b043679cd0aefe2ed58d8021))
+* **conductor:** upgrade to latest protocol and add review command ([4661f7c](https://github.com/derekbar90/opencode-conductor/commit/4661f7c3f790e78092ab11f44fff3053b2b7eaf6))
+
 ## [1.30.2](https://github.com/derekbar90/opencode-conductor/compare/v1.30.1...v1.30.2) (2026-01-09)
 
 
